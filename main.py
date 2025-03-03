@@ -48,7 +48,13 @@ if "selected_tab" not in st.session_state:
 
 
 def main():
-    """Main application entry point"""
+    """
+    Main application entry point.
+
+    This function is responsible for the overall flow of the application,
+    including setting up the user interface, handling user inputs, and
+    orchestrating the analysis of the GitHub repository.
+    """
     logger.info("Starting GitHub Repository Analyzer application")
 
     # Page header
@@ -262,7 +268,13 @@ def main():
 
 
 def display_results():
-    """Display analysis results"""
+    """
+    Display the analysis results in the Streamlit application.
+
+    This function is responsible for creating the tabs and organizing the
+    different sections of the application, such as the Repository Overview,
+    Code Quality Analysis, Commit History, and Improvement Suggestions.
+    """
 
     # Get data from session state
     repo_data = st.session_state.repo_data
@@ -479,6 +491,7 @@ def display_results():
                     score_class = "medium"
 
                 st.markdown(
+                    f"st.markdown(
                     f"**Quality Score:** <span class='score-badge score-{score_class}'>{quality_score}/10</span>",
                     unsafe_allow_html=True,
                 )
@@ -584,11 +597,8 @@ def display_results():
         """
         <footer>
             <p>GitHub Repository Analyzer | MIT License | Created with ❤️ by Replit</p>
+            <p><img alt="Duplicate this       Space" src="https://huggingface.co/datasets/huggingface/badges/resolve/main/duplicate-this-space-xl.svg"></p>
         </footer>
         """,
         unsafe_allow_html=True,
     )
-
-
-if __name__ == "__main__":
-    main()
