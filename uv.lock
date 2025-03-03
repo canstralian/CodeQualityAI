@@ -693,6 +693,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "pandas" },
     { name = "plotly" },
+    { name = "pytz" },
     { name = "requests" },
     { name = "streamlit" },
     { name = "torch", version = "2.6.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform != 'linux'" },
@@ -704,6 +705,7 @@ dependencies = [
 requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "plotly", specifier = ">=6.0.0" },
+    { name = "pytz", specifier = ">=2025.1" },
     { name = "requests", specifier = ">=2.32.3" },
     { name = "streamlit", specifier = ">=1.42.2" },
     { name = "torch", marker = "sys_platform != 'linux'", specifier = ">=2.6.0" },

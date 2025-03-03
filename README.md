@@ -4,6 +4,12 @@
 ![Python](https://img.shields.io/badge/Python-3.11-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.32.0-red)
 
+[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-lg.svg)](https://huggingface.co/spaces)
+
+[![Duplicate this Space](https://huggingface.co/datasets/huggingface/badges/resolve/main/duplicate-this-space-lg.svg)](https://huggingface.co/spaces/huggingface-projects/diffusers-gallery?duplicate=true)
+
+
+
 A powerful web-based tool for analyzing GitHub repositories, providing code quality insights, and suggesting improvements using AI-powered pattern detection.
 
 ## 🔍 Features

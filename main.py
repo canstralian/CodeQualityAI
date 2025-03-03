@@ -1,16 +1,30 @@
+"""
+GitHub Repository Analyzer - Main Application
+"""
+
 import streamlit as st
-import pandas as pd
-import os
-import time
 from github_api import GitHubRepo
 from code_analysis import CodeAnalyzer
-from visualization import visualize_commit_history, visualize_code_quality
-from utils import load_custom_css, parse_repo_url, handle_error
+from visualization import (
+    visualize_commit_history,
+    visualize_code_quality,
+    visualize_issues_by_type
+)
+from utils import (
+    load_custom_css,
+    parse_repo_url,
+    handle_error,
+    create_repo_card,
+    get_file_extension,
+    create_html_card,
+    display_code_with_issues
+)
+import os
 
 # Page configuration
 st.set_page_config(
     page_title="GitHub Repository Analyzer",
-    page_icon="🔍",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -18,325 +32,418 @@ st.set_page_config(
 # Load custom CSS
 load_custom_css()
 
-# Import GitHub OAuth
-from github_oauth import GitHubOAuth
-
-# Initialize GitHub OAuth
-github_oauth = GitHubOAuth()
-
 # Initialize session state
-if 'access_token' not in st.session_state:
-    st.session_state['access_token'] = None
-if 'user_info' not in st.session_state:
-    st.session_state['user_info'] = None
+if 'repo_analyzed' not in st.session_state:
+    st.session_state.repo_analyzed = False
+if 'repo_data' not in st.session_state:
+    st.session_state.repo_data = {}
+if 'analysis_results' not in st.session_state:
+    st.session_state.analysis_results = {}
+if 'file_contents' not in st.session_state:
+    st.session_state.file_contents = {}
+if 'selected_tab' not in st.session_state:
+    st.session_state.selected_tab = 0
 
-# Handle OAuth callback and logout
-params = st.experimental_get_query_params()
-if 'code' in params:
-    code = params['code'][0]
-    token_response = github_oauth.exchange_code_for_token(code)
-    if token_response and 'access_token' in token_response:
-        st.session_state['access_token'] = token_response['access_token']
-        st.session_state['user_info'] = github_oauth.get_user_info(token_response['access_token'])
-        # Clear query parameters
-        st.experimental_set_query_params()
-elif 'logout' in params and params['logout'][0] == 'true':
-    # Clear session data on logout
-    st.session_state['access_token'] = None
-    st.session_state['user_info'] = None
-    # Clear query parameters
-    st.experimental_set_query_params()
-    # Force refresh
-    st.experimental_rerun()
+def main():
+    """Main application entry point"""
+    
+    # Page header
+    st.title("GitHub Repository Analyzer")
+    st.markdown("""
+    Analyze any GitHub repository for code quality, visualize commit history, 
+    and get actionable improvement suggestions.
+    """)
+    
+    # Sidebar
+    with st.sidebar:
+        st.header("Repository Settings")
+        repo_url = st.text_input("GitHub Repository URL", value="https://github.com/streamlit/streamlit")
+        
+        # Analysis settings
+        st.subheader("Analysis Settings")
+        
+        file_types = st.multiselect(
+            "File Types to Analyze",
+            ["py", "js", "ts", "jsx", "tsx", "html", "css", "java", "cpp", "c", "go", "rb"],
+            default=["py", "js"]
+        )
+        
+        analysis_depth = st.select_slider(
+            "Analysis Depth",
+            options=["Basic", "Standard", "Deep"],
+            value="Standard"
+        )
+        
+        max_files = st.slider("Maximum Files to Analyze", 1, 50, 10)
+        
+        # GitHub token (optional)
+        github_token = os.environ.get('GITHUB_TOKEN')
+        if not github_token:
+            st.markdown("---")
+            st.markdown("ℹ️ **Note:** For higher API rate limits, you can set a GitHub token in your environment variables.")
+        
+        # Analyze button
+        analyze_btn = st.button("Analyze Repository", use_container_width=True)
+    
+    # Process repository analysis when button is clicked
+    if analyze_btn:
+        with st.spinner("Analyzing repository... This may take a few moments."):
+            try:
+                # Parse repository URL
+                owner, repo_name = parse_repo_url(repo_url)
+                if not owner or not repo_name:
+                    handle_error("Invalid GitHub repository URL. Please provide a valid URL.")
+                
+                # Initialize GitHub repo
+                repo = GitHubRepo(owner, repo_name, access_token=github_token)
+                
+                # Get repository information
+                repo_info = repo.get_repo_info()
+                
+                # Get commit history
+                commits = repo.get_commit_history(limit=50)
+                
+                # Get repository files for analysis
+                files = repo.get_repository_files(
+                    max_files=max_files,
+                    file_extensions=file_types
+                )
+                
+                # Initialize results
+                analysis_results = []
+                file_contents = {}
+                
+                # Initialize code analyzer
+                analyzer = CodeAnalyzer()
+                
+                # Analyze each file
+                for file_info in files:
+                    file_path = file_info['path']
+                    
+                    # Skip if file is in excluded directories
+                    excluded_dirs = ['node_modules', 'venv', '.git', '__pycache__', 'dist', 'build']
+                    if any(excluded_dir in file_path for excluded_dir in excluded_dirs):
+                        continue
+                    
+                    # Get file content
+                    content = repo.get_file_content(file_path)
+                    if not content:
+                        continue
+                    
+                    # Store file content
+                    file_contents[file_path] = content
+                    
+                    # Get file extension
+                    extension = get_file_extension(file_path)
+                    
+                    # Analyze code quality
+                    result = analyzer.analyze_code(
+                        code=content,
+                        filename=file_path,
+                        file_extension=extension,
+                        depth=analysis_depth
+                    )
+                    
+                    # Store results
+                    analysis_results.append({
+                        'file_path': file_path,
+                        'extension': extension,
+                        'result': result
+                    })
+                
+                # Store data in session state
+                st.session_state.repo_data = {
+                    'info': repo_info,
+                    'commits': commits,
+                    'files': files
+                }
+                st.session_state.analysis_results = analysis_results
+                st.session_state.file_contents = file_contents
+                st.session_state.repo_analyzed = True
+                
+                # Reset selected tab
+                st.session_state.selected_tab = 0
+                
+                # Force a rerun to show results
+                st.experimental_rerun()
+                
+            except Exception as e:
+                handle_error(str(e))
+    
+    # Display results if repository has been analyzed
+    if st.session_state.repo_analyzed:
+        display_results()
 
-# App title and description
-st.markdown('<h1 class="main-title">GitHub Repository Analyzer</h1>', unsafe_allow_html=True)
-st.markdown(
-    '<p class="subtitle">Analyze GitHub repositories, get code quality insights and improvement suggestions</p>', 
-    unsafe_allow_html=True
-)
-
-# Display user info if authenticated
-if st.session_state['user_info']:
-    st.sidebar.markdown(
-        f"""
-        <div class="user-info">
-            <img src="{st.session_state['user_info']['avatar_url']}" width="50" height="50" style="border-radius: 50%">
-            <span>Signed in as <strong>{st.session_state['user_info']['login']}</strong></span>
-            <a href="?logout=true">Sign Out</a>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-else:
-    auth_url = github_oauth.get_authorization_url()
-    st.sidebar.markdown(
-        f"""
-        <div class="auth-box">
-            <p>Sign in with GitHub to analyze private repositories and get higher API rate limits.</p>
-            <a href="{auth_url}" class="github-button">
-                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" height="20">
-                Sign in with GitHub
-            </a>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-# Sidebar for inputs
-with st.sidebar:
-    st.markdown('<h2 class="sidebar-title">Repository Settings</h2>', unsafe_allow_html=True)
+def display_results():
+    """Display analysis results"""
     
-    # GitHub repository URL input
-    repo_url = st.text_input(
-        "GitHub Repository URL",
-        placeholder="https://github.com/username/repository",
-        help="Enter the full URL of the GitHub repository you want to analyze"
-    )
+    # Get data from session state
+    repo_data = st.session_state.repo_data
+    analysis_results = st.session_state.analysis_results
+    file_contents = st.session_state.file_contents
     
-    # Analysis options
-    st.markdown('<h3 class="sidebar-section">Analysis Options</h3>', unsafe_allow_html=True)
+    # Create tabs for different sections
+    tabs = st.tabs([
+        "Repository Overview", 
+        "Code Quality Analysis", 
+        "Commit History",
+        "Improvement Suggestions"
+    ])
     
-    analyze_commits = st.checkbox("Analyze Commit History", value=True)
-    analyze_code_quality = st.checkbox("Analyze Code Quality", value=True)
+    # Tab 1: Repository Overview
+    with tabs[0]:
+        st.header("Repository Overview")
+        
+        # Repository info card
+        repo_info = repo_data['info']
+        st.markdown(create_repo_card(repo_info), unsafe_allow_html=True)
+        
+        # Repository stats
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Files Analyzed", len(analysis_results))
+        with col2:
+            avg_quality = sum(result['result']['score'] for result in analysis_results) / len(analysis_results) if analysis_results else 0
+            st.metric("Average Quality Score", f"{avg_quality:.1f}/10")
+        with col3:
+            st.metric("Commits", len(repo_data['commits']))
+        
+        # Recent commits
+        st.subheader("Recent Commits")
+        commit_data = []
+        for commit in repo_data['commits'][:5]:  # Show only 5 most recent
+            commit_data.append({
+                'Author': commit['author'],
+                'Date': commit['date'][:10],  # Show only date
+                'Message': commit['message']
+            })
+        
+        st.dataframe(commit_data)
+        
+        # File list
+        st.subheader("Analyzed Files")
+        
+        file_list = []
+        for result in analysis_results:
+            file_path = result['file_path']
+            quality_score = result['result']['score']
+            
+            # Determine score class
+            score_class = "low"
+            if quality_score >= 7:
+                score_class = "high"
+            elif quality_score >= 4:
+                score_class = "medium"
+            
+            score_html = f'<span class="score-badge score-{score_class}">{quality_score}/10</span>'
+            
+            file_list.append({
+                'File': file_path,
+                'Score': score_html,
+                'Issues': len(result['result']['issues'])
+            })
+        
+        # Convert to DataFrame for display
+        import pandas as pd
+        df = pd.DataFrame(file_list)
+        
+        # Use custom HTML for score column
+        st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
     
-    # Number of files to analyze (for performance)
-    max_files = st.slider(
-        "Maximum files to analyze", 
-        min_value=1, 
-        max_value=20, 
-        value=5,
-        help="Limit the number of files to analyze for performance reasons"
-    )
-    
-    # Specific file types to focus on
-    file_types = st.multiselect(
-        "File types to analyze",
-        options=["py", "js", "ts", "java", "go", "cpp", "c", "cs", "php", "rb"],
-        default=["py", "js", "java"],
-        help="Select specific file extensions to focus the analysis"
-    )
-    
-    # Analysis depth
-    analysis_depth = st.select_slider(
-        "Analysis depth",
-        options=["Basic", "Standard", "Deep"],
-        value="Standard",
-        help="Deeper analysis takes more time but provides more insights"
-    )
-    
-    # Start analysis button
-    analyze_button = st.button("Analyze Repository", type="primary")
-
-# Main content area
-if repo_url and analyze_button:
-    try:
-        # Parse repository URL
-        owner, repo_name = parse_repo_url(repo_url)
-        if not owner or not repo_name:
-            st.error("Invalid GitHub repository URL. Please enter a valid URL in the format: https://github.com/username/repository")
+    # Tab 2: Code Quality Analysis
+    with tabs[1]:
+        st.header("Code Quality Analysis")
+        
+        # Quality score distribution visualization
+        st.subheader("Quality Score Distribution")
+        quality_fig = visualize_code_quality(analysis_results)
+        st.plotly_chart(quality_fig, use_container_width=True)
+        
+        # Issues by type visualization
+        st.subheader("Issues by Type")
+        
+        # Flatten all issues
+        all_issues = []
+        for result in analysis_results:
+            for issue in result['result']['issues']:
+                all_issues.append(issue)
+        
+        if all_issues:
+            issues_fig = visualize_issues_by_type(all_issues)
+            st.plotly_chart(issues_fig, use_container_width=True)
         else:
-            # Initialize GitHub API client and repository analyzer
-            with st.spinner("Fetching repository data..."):
-                # Use OAuth token if available
-                github_repo = GitHubRepo(owner, repo_name, st.session_state.get('access_token'))
-                repo_info = github_repo.get_repo_info()
+            st.info("No issues detected in the analyzed files.")
+        
+        # File selection for detailed analysis
+        st.subheader("Detailed File Analysis")
+        file_options = [result['file_path'] for result in analysis_results]
+        
+        if file_options:
+            selected_file = st.selectbox("Select a file to analyze", file_options)
+            
+            # Get analysis result for selected file
+            file_result = next((result for result in analysis_results if result['file_path'] == selected_file), None)
+            
+            if file_result:
+                st.markdown(f"**Quality Score:** {file_result['result']['score']}/10")
                 
-                # Display repository info
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.markdown(f"<div class='repo-card'><h3>{repo_info['name']}</h3><p>{repo_info['description']}</p></div>", unsafe_allow_html=True)
-                with col2:
-                    st.markdown(f"<div class='stat-card'><p>⭐ Stars</p><h4>{repo_info['stars']}</h4></div>", unsafe_allow_html=True)
-                with col3:
-                    st.markdown(f"<div class='stat-card'><p>🍴 Forks</p><h4>{repo_info['forks']}</h4></div>", unsafe_allow_html=True)
-                
-                # Tabs for different analysis sections
-                tab1, tab2, tab3 = st.tabs(["Repository Overview", "Code Quality Analysis", "Improvement Suggestions"])
-                
-                # Tab 1: Repository Overview
-                with tab1:
-                    st.markdown("<h2>Repository Overview</h2>", unsafe_allow_html=True)
+                # Display issues
+                if file_result['result']['issues']:
+                    st.markdown("**Issues:**")
                     
-                    # Display repository details
-                    st.markdown("<h3>Repository Details</h3>", unsafe_allow_html=True)
-                    details_col1, details_col2 = st.columns(2)
+                    for issue in file_result['result']['issues']:
+                        severity = issue.get('severity', 'error')
+                        st.markdown(create_html_card(
+                            title=f"Line {issue.get('line', 'N/A')}: {issue.get('type', 'Issue')}",
+                            content=issue.get('message', 'No description'),
+                            card_type=severity
+                        ), unsafe_allow_html=True)
                     
-                    with details_col1:
-                        st.markdown("<div class='info-box'>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>Owner:</strong> {repo_info['owner']}</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>Created:</strong> {repo_info['created_at']}</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>Last Updated:</strong> {repo_info['updated_at']}</p>", unsafe_allow_html=True)
-                        st.markdown("</div>", unsafe_allow_html=True)
-                    
-                    with details_col2:
-                        st.markdown("<div class='info-box'>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>Language:</strong> {repo_info['language']}</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>Open Issues:</strong> {repo_info['open_issues']}</p>", unsafe_allow_html=True)
-                        st.markdown(f"<p><strong>License:</strong> {repo_info.get('license', 'Not specified')}</p>", unsafe_allow_html=True)
-                        st.markdown("</div>", unsafe_allow_html=True)
-                    
-                    # Commit history analysis
-                    if analyze_commits:
-                        st.markdown("<h3>Commit History Analysis</h3>", unsafe_allow_html=True)
-                        with st.spinner("Analyzing commit history..."):
-                            commits = github_repo.get_commit_history()
-                            
-                            # Display commit statistics
-                            st.markdown(f"<p>Total commits: <strong>{len(commits)}</strong></p>", unsafe_allow_html=True)
-                            
-                            # Visualize commit history
-                            commit_fig = visualize_commit_history(commits)
-                            st.plotly_chart(commit_fig, use_container_width=True)
-                            
-                            # Recent commits table
-                            st.markdown("<h4>Recent Commits</h4>", unsafe_allow_html=True)
-                            recent_commits = commits[:5]  # Show only 5 most recent commits
-                            
-                            # Convert to DataFrame for display
-                            commit_df = pd.DataFrame([
-                                {
-                                    "Author": commit['author'],
-                                    "Date": commit['date'],
-                                    "Message": commit['message'],
-                                    "Files Changed": commit['files_changed']
-                                } for commit in recent_commits
-                            ])
-                            
-                            st.dataframe(commit_df, use_container_width=True)
-                
-                # Tab 2: Code Quality Analysis
-                with tab2:
-                    if analyze_code_quality:
-                        st.markdown("<h2>Code Quality Analysis</h2>", unsafe_allow_html=True)
-                        
-                        with st.spinner("Analyzing code quality... This might take a while depending on repository size."):
-                            # Get repository files for analysis
-                            files = github_repo.get_repository_files(max_files=max_files, file_extensions=file_types)
-                            
-                            if not files:
-                                st.warning("No matching files found for analysis. Try selecting different file types.")
-                            else:
-                                # Initialize code analyzer
-                                code_analyzer = CodeAnalyzer()
-                                
-                                # Progress bar for analysis
-                                progress_bar = st.progress(0)
-                                file_results = []
-                                
-                                for i, file in enumerate(files):
-                                    # Update progress
-                                    progress = (i + 1) / len(files)
-                                    progress_bar.progress(progress)
-                                    
-                                    # Analyze file
-                                    file_content = github_repo.get_file_content(file['path'])
-                                    analysis_result = code_analyzer.analyze_code(
-                                        file_content, 
-                                        file['name'], 
-                                        file['extension'],
-                                        depth=analysis_depth
-                                    )
-                                    
-                                    file_results.append({
-                                        "file": file['path'],
-                                        "score": analysis_result['quality_score'],
-                                        "issues": analysis_result['issues'],
-                                        "suggestions": analysis_result['suggestions']
-                                    })
-                                
-                                # Complete progress
-                                progress_bar.progress(1.0)
-                                time.sleep(0.5)  # Small delay for UX
-                                progress_bar.empty()  # Remove progress bar
-                                
-                                # Display overall code quality score
-                                overall_score = sum(result['score'] for result in file_results) / len(file_results)
-                                
-                                # Create score color based on value
-                                score_color = "#EF4444"  # Error red
-                                if overall_score >= 8:
-                                    score_color = "#10B981"  # Success green
-                                elif overall_score >= 6:
-                                    score_color = "#F59E0B"  # Warning yellow
-                                
-                                st.markdown(
-                                    f"<div class='score-box'><h3>Overall Code Quality Score</h3>"
-                                    f"<h2 style='color: {score_color}'>{overall_score:.1f}/10</h2></div>", 
-                                    unsafe_allow_html=True
-                                )
-                                
-                                # Visualize code quality metrics
-                                quality_fig = visualize_code_quality(file_results)
-                                st.plotly_chart(quality_fig, use_container_width=True)
-                                
-                                # Display detailed analysis per file
-                                st.markdown("<h3>File-by-File Analysis</h3>", unsafe_allow_html=True)
-                                
-                                for result in file_results:
-                                    with st.expander(f"{result['file']} (Score: {result['score']:.1f}/10)"):
-                                        st.markdown("<h4>Issues Detected</h4>", unsafe_allow_html=True)
-                                        
-                                        if not result['issues']:
-                                            st.success("No significant issues detected in this file.")
-                                        else:
-                                            for issue in result['issues']:
-                                                st.markdown(
-                                                    f"<div class='issue-box'><p><strong>{issue['type']}</strong>: {issue['description']}</p></div>", 
-                                                    unsafe_allow_html=True
-                                                )
-                    else:
-                        st.info("Code quality analysis was not selected. Enable it in the sidebar to see insights about code quality.")
-                
-                # Tab 3: Improvement Suggestions
-                with tab3:
-                    if analyze_code_quality:
-                        st.markdown("<h2>Improvement Suggestions</h2>", unsafe_allow_html=True)
-                        
-                        # Group all suggestions
-                        all_suggestions = []
-                        for result in file_results:
-                            for suggestion in result['suggestions']:
-                                all_suggestions.append({
-                                    "file": result['file'],
-                                    "suggestion": suggestion
-                                })
-                        
-                        # Display suggestions
-                        if not all_suggestions:
-                            st.success("No improvement suggestions found. Your code looks good!")
-                        else:
-                            st.markdown(f"<p>Found {len(all_suggestions)} improvement suggestions across your codebase.</p>", unsafe_allow_html=True)
-                            
-                            for i, item in enumerate(all_suggestions):
-                                with st.expander(f"Suggestion {i+1} - {item['file']}"):
-                                    suggestion = item['suggestion']
-                                    
-                                    st.markdown("<h4>Issue</h4>", unsafe_allow_html=True)
-                                    st.markdown(f"<p>{suggestion['issue']}</p>", unsafe_allow_html=True)
-                                    
-                                    st.markdown("<h4>Suggestion</h4>", unsafe_allow_html=True)
-                                    st.markdown(f"<p>{suggestion['suggestion']}</p>", unsafe_allow_html=True)
-                                    
-                                    if 'code_before' in suggestion and 'code_after' in suggestion:
-                                        col1, col2 = st.columns(2)
-                                        
-                                        with col1:
-                                            st.markdown("<h5>Current Code</h5>", unsafe_allow_html=True)
-                                            st.code(suggestion['code_before'], language=item['file'].split('.')[-1])
-                                        
-                                        with col2:
-                                            st.markdown("<h5>Suggested Improvement</h5>", unsafe_allow_html=True)
-                                            st.code(suggestion['code_after'], language=item['file'].split('.')[-1])
-                    else:
-                        st.info("Code quality analysis was not selected. Enable it in the sidebar to see improvement suggestions.")
+                    # Display code with issues highlighted
+                    st.markdown("**Code:**")
+                    code = file_contents.get(selected_file, "")
+                    st.markdown(display_code_with_issues(code, file_result['result']['issues']), unsafe_allow_html=True)
+                else:
+                    st.success("No issues detected in this file.")
     
-    except Exception as e:
-        handle_error(str(e))
+    # Tab 3: Commit History
+    with tabs[2]:
+        st.header("Commit History")
+        
+        # Commit history visualization
+        commits_fig = visualize_commit_history(repo_data['commits'])
+        st.plotly_chart(commits_fig, use_container_width=True)
+        
+        # Commit list
+        st.subheader("Commit Details")
+        
+        commit_details = []
+        for commit in repo_data['commits']:
+            commit_details.append({
+                'Hash': commit['hash'][:7],
+                'Author': commit['author'],
+                'Date': commit['date'],
+                'Message': commit['message']
+            })
+        
+        # Convert to DataFrame for display
+        import pandas as pd
+        commit_df = pd.DataFrame(commit_details)
+        st.dataframe(commit_df)
+    
+    # Tab 4: Improvement Suggestions
+    with tabs[3]:
+        st.header("Improvement Suggestions")
+        
+        # Get all files with issues
+        files_with_issues = [
+            result for result in analysis_results 
+            if result['result']['issues'] and len(result['result']['issues']) > 0
+        ]
+        
+        if files_with_issues:
+            # Sort files by number of issues (most to least)
+            files_with_issues.sort(key=lambda x: len(x['result']['issues']), reverse=True)
+            
+            for result in files_with_issues:
+                file_path = result['file_path']
+                issues = result['result']['issues']
+                suggestions = result['result'].get('suggestions', [])
+                
+                st.subheader(file_path)
+                
+                # Display score
+                quality_score = result['result']['score']
+                score_class = "low"
+                if quality_score >= 7:
+                    score_class = "high"
+                elif quality_score >= 4:
+                    score_class = "medium"
+                
+                st.markdown(f"**Quality Score:** <span class='score-badge score-{score_class}'>{quality_score}/10</span>", unsafe_allow_html=True)
+                
+                # Display suggestions
+                if suggestions:
+                    for suggestion in suggestions:
+                        st.markdown(create_html_card(
+                            title=suggestion.get('title', 'Suggestion'),
+                            content=suggestion.get('description', 'No description'),
+                            card_type="info"
+                        ), unsafe_allow_html=True)
+                        
+                        # Show example if provided
+                        if 'example' in suggestion:
+                            with st.expander("Show Example"):
+                                st.code(suggestion['example'], language=result['extension'])
+                else:
+                    # Generate generic suggestions if none provided
+                    if issues:
+                        st.markdown("**General Suggestions:**")
+                        
+                        # Group issues by type
+                        issue_types = {}
+                        for issue in issues:
+                            issue_type = issue.get('type', 'Unknown')
+                            if issue_type not in issue_types:
+                                issue_types[issue_type] = []
+                            issue_types[issue_type].append(issue)
+                        
+                        # Generate suggestions for each issue type
+                        for issue_type, type_issues in issue_types.items():
+                            if issue_type == "Long function":
+                                st.markdown(create_html_card(
+                                    title="Refactor Long Functions",
+                                    content="Consider breaking down long functions into smaller, more focused functions that each do one thing well.",
+                                    card_type="info"
+                                ), unsafe_allow_html=True)
+                            
+                            elif issue_type == "Complex code":
+                                st.markdown(create_html_card(
+                                    title="Reduce Complexity",
+                                    content="Simplify complex code by breaking it down, removing nested conditions, and using helper functions.",
+                                    card_type="info"
+                                ), unsafe_allow_html=True)
+                            
+                            elif issue_type == "Inconsistent naming":
+                                st.markdown(create_html_card(
+                                    title="Standardize Naming Conventions",
+                                    content="Use consistent naming patterns throughout your codebase for better readability.",
+                                    card_type="info"
+                                ), unsafe_allow_html=True)
+                            
+                            elif issue_type == "Missing documentation":
+                                st.markdown(create_html_card(
+                                    title="Add Documentation",
+                                    content="Add docstrings, comments, and type hints to improve code clarity and maintainability.",
+                                    card_type="info"
+                                ), unsafe_allow_html=True)
+                            
+                            elif issue_type == "Potential security issue":
+                                st.markdown(create_html_card(
+                                    title="Improve Security",
+                                    content="Address security vulnerabilities by validating inputs, using secure libraries, and following security best practices.",
+                                    card_type="error"
+                                ), unsafe_allow_html=True)
+                            
+                            else:
+                                st.markdown(create_html_card(
+                                    title=f"Fix {issue_type} Issues",
+                                    content=f"Address the {len(type_issues)} identified issues of this type to improve code quality.",
+                                    card_type="info"
+                                ), unsafe_allow_html=True)
+        else:
+            st.success("No issues detected in the analyzed files. Great job!")
 
-# Footer
-st.markdown("---")
-st.markdown(
-    "<div class='footer'><p>GitHub Repository Analyzer | Built with Streamlit and CodeT5 | &copy; 2025</p></div>",
-    unsafe_allow_html=True
-)
+    # Footer
+    st.markdown("---")
+    st.markdown(
+        """
+        <footer>
+            <p>GitHub Repository Analyzer | MIT License | Created with ❤️ by Replit</p>
+        </footer>
+        """, 
+        unsafe_allow_html=True
+    )
+
+if __name__ == "__main__":
+    main()
