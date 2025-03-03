@@ -126,4 +126,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 Made with ❤️ by [Your Name/Team]
 
-*This project is not affiliated with GitHub and is provided as-is under the MIT License*
+*This project is not affiliated with GitHub and is provided as-is under the MIT License*add emojis to make the read more engaging and then add some more relevant, working badges for the repo on github, possibly tied in with the .yml workflow
