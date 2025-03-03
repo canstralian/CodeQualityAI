@@ -109,3 +109,31 @@ def code_analyzer_mock():
     }
     
     return mock
+import pytest
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
+
+# Use an in-memory SQLite database for testing
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+@pytest.fixture(scope="session")
+def db():
+    """
+    Create database tables and yield a test database session.
+    This setup is designed for SQLAlchemy-based tests.
+    """
+    # Import Base here to avoid circular imports
+    try:
+        from app.database import Base
+        Base.metadata.create_all(bind=engine)
+        yield TestingSessionLocal()
+        Base.metadata.drop_all(bind=engine)
+    except ImportError:
+        # If there's no SQLAlchemy database setup, just yield None
+        yield None
