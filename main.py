@@ -491,7 +491,6 @@ def display_results():
                     score_class = "medium"
 
                 st.markdown(
-                    f"st.markdown(
                     f"**Quality Score:** <span class='score-badge score-{score_class}'>{quality_score}/10</span>",
                     unsafe_allow_html=True,
                 )
