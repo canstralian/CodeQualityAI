@@ -36,9 +36,14 @@ def setup_logger(name="github_analyzer"):
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     
-    # Create file handler for debug level logs
+    # Create rotating file handler for debug level logs
+    from logging.handlers import RotatingFileHandler
     log_filename = f"logs/app_{datetime.now().strftime('%Y%m%d')}.log"
-    file_handler = logging.FileHandler(log_filename)
+    file_handler = RotatingFileHandler(
+        log_filename, 
+        maxBytes=5*1024*1024,  # 5MB per file
+        backupCount=3  # Keep 3 backup files
+    )
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
     

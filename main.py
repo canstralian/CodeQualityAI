@@ -127,7 +127,12 @@ def main():
                 # Get repository information
                 logger.info(f"Fetching repository information for {owner}/{repo_name}")
                 repo_info = repo.get_repo_info()
-                logger.debug(f"Repository info: {repo_info['name']}, stars: {repo_info['stars']}")
+                
+                # Log comprehensive repository information
+                logger.info(f"Successfully retrieved repo: {repo_info['full_name']}")
+                logger.debug(f"Repository details: name={repo_info['name']}, owner={owner}, " +
+                             f"stars={repo_info['stars']}, forks={repo_info['forks']}, " +
+                             f"language={repo_info['language']}, license={repo_info['license']}")
 
                 # Get commit history
                 logger.info(f"Fetching commit history for {owner}/{repo_name}")
