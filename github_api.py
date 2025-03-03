@@ -5,7 +5,9 @@ GitHub Repository API Interface
 import requests
 import base64
 import time
+import traceback
 from utils import truncate_text, format_commit_message, handle_error, get_file_extension
+from logger import logger
 
 
 class GitHubRepo:
@@ -44,7 +46,8 @@ class GitHubRepo:
             dict or list: Response data
         """
         url = f"{self.base_url}{endpoint}"
-
+        logger.debug(f"Making GitHub API request: {method} {url}")
+        
         try:
             if method == "GET":
                 response = requests.get(url, headers=self.headers, params=params)
@@ -52,6 +55,8 @@ class GitHubRepo:
                 response = requests.request(
                     method, url, headers=self.headers, json=params
                 )
+            
+            logger.debug(f"GitHub API response status: {response.status_code}")
 
             # Handle rate limiting
             if (
@@ -62,29 +67,40 @@ class GitHubRepo:
                 reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
                 current_time = int(time.time())
                 sleep_time = max(reset_time - current_time, 0) + 1
+                
+                logger.warning(f"GitHub API rate limit exceeded. Reset in {sleep_time} seconds")
 
                 if sleep_time > 300:  # More than 5 minutes wait time
+                    logger.error("GitHub API rate limit exceeded with long reset time")
                     handle_error(
                         "GitHub API rate limit exceeded. Please try again later or use a GitHub token."
                     )
 
+                logger.info(f"Waiting for rate limit reset: {sleep_time} seconds")
                 time.sleep(sleep_time)
+                logger.info("Retrying request after rate limit wait")
                 return self._make_request(endpoint, params, method)
 
             # Check for successful response
             response.raise_for_status()
-
+            
+            logger.debug(f"GitHub API request successful: {method} {url}")
             return response.json()
 
         except requests.exceptions.RequestException as e:
             error_message = f"Error accessing GitHub API: {str(e)}"
+            logger.error(f"GitHub API request failed: {error_message}")
+            
             try:
                 error_data = e.response.json()
                 if "message" in error_data:
                     error_message = f"GitHub API Error: {error_data['message']}"
-            except:
+                    logger.error(f"GitHub API error message: {error_data['message']}")
+            except Exception:
+                logger.debug("Could not parse error response as JSON")
                 pass
-
+            
+            logger.debug(f"GitHub API error details: {traceback.format_exc()}")
             handle_error(error_message)
 
     def get_repo_info(self):

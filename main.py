@@ -3,6 +3,8 @@ GitHub Repository Analyzer - Main Application
 """
 
 import streamlit as st
+import traceback
+import os
 from github_api import GitHubRepo
 from code_analysis import CodeAnalyzer
 from visualization import (
@@ -19,7 +21,7 @@ from utils import (
     create_html_card,
     display_code_with_issues,
 )
-import os
+from logger import logger
 
 # Page configuration
 st.set_page_config(
@@ -47,6 +49,7 @@ if "selected_tab" not in st.session_state:
 
 def main():
     """Main application entry point"""
+    logger.info("Starting GitHub Repository Analyzer application")
 
     # Page header
     st.title("GitHub Repository Analyzer")
@@ -107,78 +110,105 @@ def main():
     if analyze_btn:
         with st.spinner("Analyzing repository... This may take a few moments."):
             try:
+                logger.info(f"Starting analysis of repository: {repo_url}")
+                
                 # Parse repository URL
                 owner, repo_name = parse_repo_url(repo_url)
                 if not owner or not repo_name:
+                    logger.error(f"Invalid repository URL: {repo_url}")
                     handle_error(
                         "Invalid GitHub repository URL. Please provide a valid URL."
                     )
 
                 # Initialize GitHub repo
+                logger.info(f"Initializing GitHub API client for {owner}/{repo_name}")
                 repo = GitHubRepo(owner, repo_name, access_token=github_token)
 
                 # Get repository information
+                logger.info(f"Fetching repository information for {owner}/{repo_name}")
                 repo_info = repo.get_repo_info()
+                logger.debug(f"Repository info: {repo_info['name']}, stars: {repo_info['stars']}")
 
                 # Get commit history
+                logger.info(f"Fetching commit history for {owner}/{repo_name}")
                 commits = repo.get_commit_history(limit=50)
+                logger.debug(f"Retrieved {len(commits)} commits")
 
                 # Get repository files for analysis
+                logger.info(f"Fetching repository files for analysis (max: {max_files}, types: {file_types})")
                 files = repo.get_repository_files(
                     max_files=max_files, file_extensions=file_types
                 )
+                logger.debug(f"Retrieved {len(files)} files for analysis")
 
                 # Initialize results
                 analysis_results = []
                 file_contents = {}
 
                 # Initialize code analyzer
+                logger.info("Initializing code analyzer")
                 analyzer = CodeAnalyzer()
 
                 # Analyze each file
-                for file_info in files:
+                for i, file_info in enumerate(files):
                     file_path = file_info["path"]
+                    logger.info(f"Processing file {i+1}/{len(files)}: {file_path}")
 
-                    # Skip if file is in excluded directories
-                    excluded_dirs = [
-                        "node_modules",
-                        "venv",
-                        ".git",
-                        "__pycache__",
-                        "dist",
-                        "build",
-                    ]
-                    if any(excluded_dir in file_path for excluded_dir in excluded_dirs):
+                    try:
+                        # Skip if file is in excluded directories
+                        excluded_dirs = [
+                            "node_modules",
+                            "venv",
+                            ".git",
+                            "__pycache__",
+                            "dist",
+                            "build",
+                        ]
+                        if any(excluded_dir in file_path for excluded_dir in excluded_dirs):
+                            logger.debug(f"Skipping excluded directory file: {file_path}")
+                            continue
+
+                        # Get file content
+                        logger.debug(f"Fetching content for {file_path}")
+                        content = repo.get_file_content(file_path)
+                        if not content:
+                            logger.warning(f"No content retrieved for {file_path}")
+                            continue
+
+                        # Store file content
+                        file_contents[file_path] = content
+
+                        # Get file extension
+                        extension = get_file_extension(file_path)
+                        logger.debug(f"File extension for {file_path}: {extension}")
+
+                        # Analyze code quality
+                        logger.debug(f"Analyzing code quality for {file_path} with {analysis_depth} depth")
+                        result = analyzer.analyze_code(
+                            code=content,
+                            filename=file_path,
+                            file_extension=extension,
+                            depth=analysis_depth,
+                        )
+
+                        # Store results
+                        analysis_results.append(
+                            {
+                                "file_path": file_path,
+                                "extension": extension,
+                                "result": result,
+                            }
+                        )
+                        logger.debug(f"Analysis complete for {file_path}: score={result['score']}, issues={len(result['issues'])}")
+                        
+                    except Exception as file_error:
+                        logger.error(f"Error processing file {file_path}: {str(file_error)}")
+                        logger.debug(f"File processing error details: {traceback.format_exc()}")
+                        # Continue with other files even if one fails
                         continue
 
-                    # Get file content
-                    content = repo.get_file_content(file_path)
-                    if not content:
-                        continue
-
-                    # Store file content
-                    file_contents[file_path] = content
-
-                    # Get file extension
-                    extension = get_file_extension(file_path)
-
-                    # Analyze code quality
-                    result = analyzer.analyze_code(
-                        code=content,
-                        filename=file_path,
-                        file_extension=extension,
-                        depth=analysis_depth,
-                    )
-
-                    # Store results
-                    analysis_results.append(
-                        {
-                            "file_path": file_path,
-                            "extension": extension,
-                            "result": result,
-                        }
-                    )
-
+                logger.info(f"Analysis complete. Processed {len(analysis_results)} files")
+                
                 # Store data in session state
                 st.session_state.repo_data = {
                     "info": repo_info,
@@ -191,11 +221,15 @@ def main():
 
                 # Reset selected tab
                 st.session_state.selected_tab = 0
+                
+                logger.info("Successfully completed repository analysis")
 
                 # Force a rerun to show results
                 st.experimental_rerun()
 
             except Exception as e:
+                logger.error(f"Fatal error during repository analysis: {str(e)}")
+                logger.debug(f"Analysis error details: {traceback.format_exc()}")
                 handle_error(str(e))
 
     # Display results if repository has been analyzed

@@ -6,6 +6,8 @@ import re
 import streamlit as st
 from datetime import datetime
 import pytz
+import traceback
+from logger import logger
 
 
 def load_custom_css():
@@ -44,11 +46,13 @@ def parse_repo_url(url):
 
 def handle_error(error_message):
     """
-    Display a user-friendly error message
+    Display a user-friendly error message and log the error
 
     Args:
         error_message (str): The error message to display
     """
+    logger.error(f"Application error: {error_message}")
+    logger.debug(f"Error context: {traceback.format_exc()}")
     st.error(f"Error: {error_message}")
     st.stop()
 

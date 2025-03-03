@@ -4,6 +4,8 @@ Code Analysis Module for GitHub Repository Analyzer
 
 import re
 import random
+import traceback
+from logger import logger
 
 
 class CodeAnalyzer:
@@ -19,9 +21,10 @@ class CodeAnalyzer:
         try:
             # Attempt to import transformers
             import transformers
-
+            logger.info("Transformers library successfully imported")
             self.model_loaded = True
-        except:
+        except ImportError as e:
+            logger.warning(f"Transformers library not available: {str(e)}")
             self.model_loaded = False
 
     def load_model(self):
@@ -33,12 +36,15 @@ class CodeAnalyzer:
             from transformers import T5ForConditionalGeneration, RobertaTokenizer
             import torch
 
+            logger.info("Starting to load AI code analysis model")
             # This would load a pre-trained model in a full implementation
             # For now, we'll just set a flag to use simulated analysis
             self.model_loaded = True
+            logger.info("AI code analysis model loaded successfully")
 
         except Exception as e:
-            print(f"Error loading model: {str(e)}")
+            logger.error(f"Error loading model: {str(e)}")
+            logger.debug(f"Model loading error details: {traceback.format_exc()}")
             self.model_loaded = False
 
     def analyze_code(self, code, filename, file_extension, depth="Standard"):
@@ -54,63 +60,97 @@ class CodeAnalyzer:
         Returns:
             dict: Analysis results including quality score, issues and suggestions
         """
-        # Define analysis depth factors
-        depth_factor = {
-            "Basic": 0.7,  # Less thorough analysis
-            "Standard": 1.0,  # Normal analysis
-            "Deep": 1.3,  # More thorough analysis
-        }
+        logger.info(f"Starting code analysis for {filename} with {depth} depth")
+        
+        try:
+            # Define analysis depth factors
+            depth_factor = {
+                "Basic": 0.7,  # Less thorough analysis
+                "Standard": 1.0,  # Normal analysis
+                "Deep": 1.3,  # More thorough analysis
+            }
 
-        # Pattern-based analysis
-        pattern_results = self._pattern_analysis(code, file_extension)
+            # Pattern-based analysis
+            pattern_results = self._pattern_analysis(code, file_extension)
+            logger.debug(f"Pattern analysis for {filename} found {len(pattern_results['issues'])} issues")
 
-        # Use AI model if loaded, otherwise use simulated analysis
-        if self.model_loaded and depth == "Deep":
-            ai_results = self._ai_analysis(code, file_extension)
-        else:
-            ai_results = self._simulated_ai_analysis(code, file_extension)
+            # Use AI model if loaded, otherwise use simulated analysis
+            if self.model_loaded and depth == "Deep":
+                logger.info(f"Using AI analysis for {filename}")
+                ai_results = self._ai_analysis(code, file_extension)
+            else:
+                if depth == "Deep":
+                    logger.debug("AI model not loaded, falling back to simulated analysis")
+                ai_results = self._simulated_ai_analysis(code, file_extension)
+            
+            logger.debug(f"AI analysis for {filename} found {len(ai_results['issues'])} issues")
 
-        # Combine results
-        issues = pattern_results["issues"] + ai_results["issues"]
+            # Combine results
+            issues = pattern_results["issues"] + ai_results["issues"]
 
-        # Apply depth factor to number of issues detected
-        if depth != "Standard":
-            factor = depth_factor.get(depth, 1.0)
+            # Apply depth factor to number of issues detected
+            if depth != "Standard":
+                factor = depth_factor.get(depth, 1.0)
+                logger.debug(f"Applying depth factor {factor} for {depth} analysis")
 
-            if factor < 1.0:  # Basic analysis - fewer issues
-                max_issues = max(1, int(len(issues) * factor))
-                issues = issues[:max_issues]
-            elif factor > 1.0:  # Deep analysis - more issues
-                # For deep analysis, we might add more specific issues
-                additional_issues = self._generate_additional_issues(
-                    code, file_extension, len(issues)
-                )
-                issues.extend(additional_issues)
+                if factor < 1.0:  # Basic analysis - fewer issues
+                    max_issues = max(1, int(len(issues) * factor))
+                    issues = issues[:max_issues]
+                    logger.debug(f"Basic analysis: reduced issues to {len(issues)}")
+                elif factor > 1.0:  # Deep analysis - more issues
+                    # For deep analysis, we might add more specific issues
+                    additional_issues = self._generate_additional_issues(
+                        code, file_extension, len(issues)
+                    )
+                    issues.extend(additional_issues)
+                    logger.debug(f"Deep analysis: added {len(additional_issues)} additional issues")
 
-        # Calculate quality score (0-10)
-        # Base score starts at 10 and gets reduced for each issue
-        base_score = 10.0
-        issue_penalty = 10.0 / (
-            len(issues) + 10
-        )  # +10 to avoid extreme penalties for many issues
+            # Calculate quality score (0-10)
+            # Base score starts at 10 and gets reduced for each issue
+            base_score = 10.0
+            issue_penalty = 10.0 / (
+                len(issues) + 10
+            )  # +10 to avoid extreme penalties for many issues
 
-        quality_score = base_score - (issue_penalty * len(issues))
+            quality_score = base_score - (issue_penalty * len(issues))
 
-        # Ensure score is between 0 and 10
-        quality_score = max(0, min(10, quality_score))
+            # Ensure score is between 0 and 10
+            quality_score = max(0, min(10, quality_score))
 
-        # Round to 1 decimal place
-        quality_score = round(quality_score, 1)
+            # Round to 1 decimal place
+            quality_score = round(quality_score, 1)
 
-        # Generate improvement suggestions
-        suggestions = self._generate_suggestions(code, issues, file_extension)
+            # Generate improvement suggestions
+            suggestions = self._generate_suggestions(code, issues, file_extension)
+            
+            logger.info(f"Completed analysis for {filename}: score={quality_score}, issues={len(issues)}")
 
-        return {
-            "filename": filename,
-            "score": quality_score,
-            "issues": issues,
-            "suggestions": suggestions,
-        }
+            return {
+                "filename": filename,
+                "score": quality_score,
+                "issues": issues,
+                "suggestions": suggestions,
+            }
+        except Exception as e:
+            logger.error(f"Error analyzing {filename}: {str(e)}")
+            logger.debug(f"Analysis error details: {traceback.format_exc()}")
+            
+            # Return a minimal result set with the error
+            return {
+                "filename": filename,
+                "score": 0.0,
+                "issues": [{
+                    "line": 1,
+                    "type": "Analysis Error",
+                    "severity": "error",
+                    "message": f"Error analyzing file: {str(e)}"
+                }],
+                "suggestions": [{
+                    "title": "Fix Analysis Error",
+                    "description": "The file could not be properly analyzed due to an error. Check file format and content.",
+                    "example": "# No example available for this error"
+                }]
+            }
 
     def _pattern_analysis(self, code, file_extension):
         """
