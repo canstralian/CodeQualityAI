@@ -138,10 +138,13 @@ class GitHubRepo:
         Returns:
             dict: Repository information
         """
+        if hasattr(self, '_repo_info_cache'):
+            return self._repo_info_cache
+
         endpoint = f"/repos/{self.owner}/{self.repo_name}"
         data = self._make_request(endpoint)
 
-        return {
+        repo_info = {
             "name": data.get("name", ""),
             "full_name": data.get("full_name", ""),
             "description": data.get("description", "No description"),
@@ -155,6 +158,10 @@ class GitHubRepo:
             "license": data.get("license", {}).get("name", "No license"),
             "url": data.get("html_url", ""),
         }
+
+        # Cache the repository information
+        self._repo_info_cache = repo_info
+        return repo_info
 
     def get_commit_history(self, limit=100):
         """
