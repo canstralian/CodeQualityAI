@@ -51,7 +51,7 @@ class GitHubRepo:
         try:
             # Set timeout to avoid hanging requests (10 seconds for connection, 30 seconds for read)
             timeout = (10, 30)
-            
+
             if method == "GET":
                 response = requests.get(url, headers=self.headers, params=params, timeout=timeout)
             else:
@@ -60,11 +60,11 @@ class GitHubRepo:
                 )
 
             logger.debug(f"GitHub API response status: {response.status_code}")
-            
+
             # Check if response is JSON before proceeding
             content_type = response.headers.get("Content-Type", "")
             is_json_response = "application/json" in content_type or response.text.strip().startswith(("{", "["))
-            
+
             if not is_json_response and response.status_code == 200:
                 logger.warning(f"Non-JSON response received from GitHub API: {content_type}")
 
@@ -79,7 +79,7 @@ class GitHubRepo:
                     reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
                     current_time = int(time.time())
                     wait_time = max(reset_time - current_time, 0) + 1
-                    
+
                     # Cap the maximum wait time to 5 minutes (300 seconds)
                     max_wait_time = 300
                     sleep_time = min(wait_time, max_wait_time)
@@ -88,18 +88,16 @@ class GitHubRepo:
                         f"GitHub API rate limit exceeded. Reset in {wait_time} seconds, waiting {sleep_time} seconds"
                     )
 
-                    if wait_time > max_wait_time:
-                        logger.error(
-                            f"GitHub API rate limit exceeded with long reset time ({wait_time}s)"
-                        )
-                        handle_error(
-                            "GitHub API rate limit exceeded. Please try again later or use a GitHub token."
-                        )
+                    # Log resource usage info if available
+                    if "X-RateLimit-Limit" in response.headers:
+                        limit = response.headers.get("X-RateLimit-Limit")
+                        used = response.headers.get("X-RateLimit-Used", "unknown")
+                        logger.info(f"Rate limit info - Limit: {limit}, Used: {used}")
 
                     logger.info(f"Waiting for rate limit reset: {sleep_time} seconds")
                     time.sleep(sleep_time)
                     logger.info("Retrying request after rate limit wait")
-                    
+
                     # Use an iterative approach instead of recursion to avoid stack overflow
                     for retry_attempt in range(3):  # Limit retries to 3 attempts
                         logger.info(f"Retry attempt {retry_attempt + 1} for {endpoint}")
@@ -110,21 +108,21 @@ class GitHubRepo:
                                 method, url, headers=self.headers, json=params
                             )
                         )
-                        
+
                         if retry_response.status_code == 200:
                             logger.info(f"Retry successful for {endpoint}")
                             return retry_response.json()
-                        
+
                         remaining = int(retry_response.headers.get("X-RateLimit-Remaining", 1))
                         if retry_response.status_code != 403 or remaining > 0:
                             # If the error is not rate limiting, break and let the regular error handling take over
                             break
-                            
+
                         # Exponential backoff
                         backoff_time = min(2 ** retry_attempt * 5, 60)  # 5s, 10s, 20s up to 60s max
                         logger.info(f"Rate limit still exceeded, backing off for {backoff_time}s")
                         time.sleep(backoff_time)
-                    
+
                     # If we get here, the retries failed
                     logger.error(f"Failed to recover from rate limit after retries for {endpoint}")
                     handle_error("GitHub API rate limit exceeded. Please try again later or use a GitHub token with higher limits.")
@@ -162,13 +160,13 @@ class GitHubRepo:
             logger.error(f"GitHub API request timed out: {error_message}")
             logger.debug(f"Timeout details: {traceback.format_exc()}")
             handle_error(f"GitHub API request timed out. Please try again later. ({str(timeout_err)})")
-            
+
         except requests.exceptions.ConnectionError as conn_err:
             error_message = f"Connection error accessing GitHub API: {str(conn_err)}"
             logger.error(f"GitHub API connection failed: {error_message}")
             logger.debug(f"Connection error details: {traceback.format_exc()}")
             handle_error(f"GitHub API connection failed. Please check your network connection. ({str(conn_err)})")
-            
+
         except requests.exceptions.RequestException as e:
             error_message = f"Error accessing GitHub API: {str(e)}"
             logger.error(f"GitHub API request failed: {error_message}")
@@ -180,7 +178,7 @@ class GitHubRepo:
                         if "message" in error_data:
                             error_message = f"GitHub API Error: {error_data['message']}"
                             logger.error(f"GitHub API error message: {error_data['message']}")
-                            
+
                             # Check for specific GitHub error codes
                             if "documentation_url" in error_data:
                                 logger.info(f"GitHub API documentation reference: {error_data['documentation_url']}")
@@ -412,11 +410,11 @@ class GitHubRepo:
         if hasattr(self, '_file_content_cache') and cache_key in self._file_content_cache:
             logger.debug(f"Using cached content for {file_path}")
             return self._file_content_cache[cache_key]
-        
+
         # Initialize cache if it doesn't exist
         if not hasattr(self, '_file_content_cache'):
             self._file_content_cache = {}
-            
+
         endpoint = f"/repos/{self.owner}/{self.repo_name}/contents/{file_path}"
 
         try:
@@ -467,7 +465,7 @@ class GitHubRepo:
         """
         # Cache key for storing results
         cache_key = f"{self.owner}/{self.repo_name}/{file_path}"
-        
+
         # Use cached repo_info if available to reduce API calls
         if hasattr(self, '_repo_info_cache'):
             repo_info = self._repo_info_cache
@@ -475,7 +473,7 @@ class GitHubRepo:
         else:
             logger.debug(f"Fetching repo info for blob retrieval of {file_path}")
             repo_info = self.get_repo_info()
-            
+
         branch = repo_info.get("default_branch", "main")
 
         endpoint = f"/repos/{self.owner}/{self.repo_name}/contents/{file_path}"
@@ -504,7 +502,7 @@ class GitHubRepo:
             if not content:
                 logger.warning(f"No content in blob for file {file_path}")
                 return None
-                
+
             # This might be base64-encoded, so decode it
             try:
                 decoded_content = base64.b64decode(content.replace("\n", "")).decode("utf-8")

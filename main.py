@@ -108,8 +108,15 @@ def main():
         if not github_token:
             st.markdown("---")
             st.markdown(
-                "ℹ️ **Note:** For higher API rate limits, you can set a GitHub token in your environment variables."
+                "ℹ️ **Note:** For higher API rate limits, you can set a GitHub token in the Secrets tool."
             )
+            st.markdown(
+                "<small>Go to Tools > Secrets and add a secret with key `GH_TOKEN` and your GitHub token as value.</small>",
+                unsafe_allow_html=True
+            )
+        else:
+            # Mask token in logs
+            logger.info("GitHub token found in environment")
 
         # Analyze button
         analyze_btn = st.button("Analyze Repository", use_container_width=True)
@@ -259,6 +266,9 @@ def main():
                 st.rerun()
 
             except Exception as e:
+                # Clean up resources
+                if 'repo' in locals():
+                    repo.cleanup()
                 logger.error(f"Fatal error during repository analysis: {str(e)}")
                 logger.debug(f"Analysis error details: {traceback.format_exc()}")
                 logger.error(f"Application error: {str(e)}")

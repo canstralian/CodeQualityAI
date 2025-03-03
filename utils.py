@@ -30,6 +30,13 @@ def parse_repo_url(url):
     Returns:
         tuple: (owner, repo_name) or (None, None) if parsing fails
     """
+    if not url or not isinstance(url, str):
+        logger.error(f"Invalid repository URL: {url}")
+        return None, None
+        
+    # Sanitize input
+    url = url.strip()
+    
     # GitHub URL patterns
     patterns = [
         r"github\.com/([^/]+)/([^/]+)/?$",  # https://github.com/owner/repo
@@ -41,8 +48,20 @@ def parse_repo_url(url):
     for pattern in patterns:
         match = re.search(pattern, url)
         if match:
-            return match.group(1), match.group(2)
+            owner, repo = match.group(1), match.group(2)
+            
+            # Additional validation
+            if '?' in repo or '#' in repo:
+                # Remove URL parameters or fragments
+                repo = repo.split('?')[0].split('#')[0]
+                
+            # Check for valid names
+            if not owner or not repo:
+                continue
+                
+            return owner, repo
 
+    logger.warning(f"Failed to parse repository URL: {url}")
     return None, None
 
 
@@ -70,6 +89,16 @@ def truncate_text(text, max_length=100):
     Returns:
         str: Truncated text
     """
+    if not text:
+        return ""
+        
+    if not isinstance(text, str):
+        try:
+            text = str(text)
+        except Exception as e:
+            logger.warning(f"Failed to convert text to string: {e}")
+            return ""
+            
     if len(text) <= max_length:
         return text
     return text[: max_length - 3] + "..."
@@ -85,13 +114,17 @@ def format_timestamp(timestamp):
     Returns:
         str: Formatted timestamp
     """
+    if not timestamp:
+        return ""
+        
     try:
         dt = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         # Convert to local timezone
         local_tz = datetime.now().astimezone().tzinfo
         dt = dt.replace(tzinfo=pytz.UTC).astimezone(local_tz)
         return dt.strftime("%Y-%m-%d %H:%M:%S")
-    except:
+    except (ValueError, TypeError) as e:
+        logger.debug(f"Error formatting timestamp {timestamp}: {e}")
         return timestamp
 
 

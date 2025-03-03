@@ -18,6 +18,9 @@ class CodeAnalyzer:
         """
         Initialize the code analyzer
         """
+        # Set fixed random seed for consistent results
+        random.seed(42)
+        
         self.model_loaded = False
         try:
             # Attempt to import transformers

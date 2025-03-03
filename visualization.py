@@ -9,6 +9,7 @@ from datetime import datetime
 
 import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd #Import pandas at module level to avoid repeated imports in functions.
 
 def visualize_commit_history(commits):
     """
@@ -31,8 +32,7 @@ def visualize_commit_history(commits):
     >>> fig = visualize_commit_history(commits)
     >>> fig.show()
     """
-    # Import pandas locally to avoid circular imports
-    import pandas as pd
+    
     if not commits:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -132,8 +132,7 @@ def visualize_code_quality(file_results):
     >>> fig = visualize_code_quality(file_results)
     >>> fig.show()
     """
-    # Import pandas locally to avoid circular imports
-    import pandas as pd
+    
     if not file_results:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -280,8 +279,7 @@ def visualize_issues_by_type(issues):
     >>> fig = visualize_issues_by_type(issues)
     >>> fig.show()
     """
-    # Import pandas locally to avoid circular imports
-    import pandas as pd
+    
     if not issues:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -392,8 +390,7 @@ def visualize_commit_activity_by_author(commits):
     >>> fig = visualize_commit_activity_by_author(commits)
     >>> fig.show()
     """
-    # Import pandas locally to avoid circular imports
-    import pandas as pd
+    
     if not commits:
         # Create an empty figure with a message
         fig = go.Figure()
