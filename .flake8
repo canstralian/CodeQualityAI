@@ -1,14 +1,7 @@
 
 [flake8]
-max-line-length = 88
-extend-ignore = E203, W503
-exclude = .venv,migrations,.git,__pycache__
-# Enable advanced checks
-select = C,E,F,W,B,B950
-# Add plugins for more comprehensive analysis
-require-version = 3.9.0
-plugins =
-    flake8-bugbear
-    flake8-comprehensions
-    flake8-eradicate
-    flake8-broken-line
+max-line-length = 127
+exclude = .git,__pycache__,docs/source/conf.py,build,dist
+select = E,W,F,C,N
+ignore = E501,W503
+max-complexity = 10 # Example: Setting max complexity

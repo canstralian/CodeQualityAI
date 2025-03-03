@@ -2,6 +2,10 @@
 
 A powerful Streamlit-based tool for analyzing GitHub repositories, providing code quality insights, and suggesting improvements using pattern-based detection.
 
+[![Follow me on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/follow-me-on-HF-xl-dark.svg)](https://huggingface.co/Chunte)
+
+[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-xl.svg)](https://huggingface.co/spaces)
+
 ![GitHub Repository Analyzer](generated-icon.png)
 
 ## 📋 Overview
@@ -124,6 +128,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Made with ❤️ by [Your Name/Team]
+Made with ❤️ by Canstralian/Chemically Motivated Solutions
 
 *This project is not affiliated with GitHub and is provided as-is under the MIT License*add emojis to make the read more engaging and then add some more relevant, working badges for the repo on github, possibly tied in with the .yml workflow
