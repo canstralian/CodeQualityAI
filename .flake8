@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 88  # Consistent with Black
+extend-ignore = E203, W503  # Compatibility with Black
+exclude = .venv,migrations,.git,__pycache__
