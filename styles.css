@@ -1,0 +1,174 @@
+/* Global Styles */
+* {
+    font-family: 'Inter', sans-serif;
+}
+
+code, pre {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+/* Typography */
+.main-title {
+    color: #2563EB;
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #6B7280;
+    font-size: 1.1rem;
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+.sidebar-title {
+    color: #1F2937;
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.sidebar-section {
+    color: #4B5563;
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Cards and Boxes */
+.repo-card {
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-left: 4px solid #2563EB;
+}
+
+.repo-card h3 {
+    margin-top: 0;
+    color: #1F2937;
+}
+
+.repo-card p {
+    color: #4B5563;
+    margin-bottom: 0;
+}
+
+.stat-card {
+    background-color: #F8FAFC;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card p {
+    color: #4B5563;
+    margin-bottom: 4px;
+    font-size: 1rem;
+}
+
+.stat-card h4 {
+    color: #2563EB;
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.info-box {
+    background-color: #F9FAFB;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.info-box p {
+    margin: 8px 0;
+}
+
+.score-box {
+    background-color: #F0F9FF;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+.score-box h3 {
+    margin-top: 0;
+    color: #1F2937;
+}
+
+.score-box h2 {
+    font-size: 3rem;
+    margin-bottom: 0;
+}
+
+.issue-box {
+    background-color: #FEF2F2;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 12px;
+    border-left: 3px solid #EF4444;
+}
+
+.error-box {
+    background-color: #FEF2F2;
+    border-radius: 8px;
+    padding: 16px;
+    margin: 16px 0;
+    border: 1px solid #FCA5A5;
+}
+
+.error-box h3 {
+    color: #EF4444;
+    margin-top: 0;
+}
+
+/* Buttons and Interactive Elements */
+.stButton > button {
+    background-color: #2563EB;
+    color: white;
+    border-radius: 6px;
+    border: none;
+    padding: 8px 16px;
+    font-weight: 500;
+}
+
+.stButton > button:hover {
+    background-color: #1D4ED8;
+}
+
+/* Code Blocks */
+pre {
+    background-color: #F9FAFB;
+    border-radius: 6px;
+    padding: 16px;
+    border: 1px solid #E5E7EB;
+    overflow: auto;
+}
+
+code {
+    font-size: 0.9rem;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 16px 0;
+    color: #6B7280;
+    font-size: 0.9rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-title {
+        font-size: 2rem;
+    }
+    
+    .score-box h2 {
+        font-size: 2.5rem;
+    }
+}
