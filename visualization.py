@@ -1,9 +1,13 @@
-import streamlit as st
-import plotly.express as px
+"""
+Visualization module for GitHub Repository Analyzer
+"""
+
 import plotly.graph_objects as go
-from collections import Counter
+import plotly.express as px
+from datetime import datetime
 import pandas as pd
-from datetime import datetime, timedelta
+import random
+from collections import Counter
 
 def visualize_commit_history(commits):
     """
@@ -15,48 +19,79 @@ def visualize_commit_history(commits):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure object
     """
-    # Extract commit dates and count by date
-    dates = [commit['date'] for commit in commits]
-    date_counter = Counter(dates)
+    if not commits:
+        # Create an empty figure with a message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No commit data available",
+            x=0.5, y=0.5,
+            xref="paper", yref="paper",
+            showarrow=False,
+            font=dict(size=16)
+        )
+        return fig
     
-    # Prepare data for visualization
-    date_df = pd.DataFrame({
-        'Date': list(date_counter.keys()),
-        'Commits': list(date_counter.values())
+    # Convert commit dates to datetime objects
+    dates = []
+    for commit in commits:
+        try:
+            date_str = commit.get('date', '')
+            date_obj = datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+            dates.append(date_obj)
+        except:
+            # Skip commits with invalid dates
+            continue
+    
+    # Count commits by date
+    date_counts = Counter([date.date() for date in dates])
+    
+    # Convert to DataFrame for plotting
+    df = pd.DataFrame({
+        'date': list(date_counts.keys()),
+        'count': list(date_counts.values())
     })
     
     # Sort by date
-    date_df['Date'] = pd.to_datetime(date_df['Date'])
-    date_df = date_df.sort_values('Date')
+    df = df.sort_values('date')
     
-    # Fill in missing dates with zero commits
-    date_range = pd.date_range(start=date_df['Date'].min(), end=date_df['Date'].max())
-    date_df = date_df.set_index('Date').reindex(date_range, fill_value=0).reset_index()
-    date_df = date_df.rename(columns={'index': 'Date'})
+    # Create figure
+    fig = px.line(
+        df, 
+        x='date', 
+        y='count',
+        title='Commit History',
+        labels={'date': 'Date', 'count': 'Number of Commits'},
+        line_shape='linear'
+    )
     
-    # Create commit activity heatmap
-    fig = px.bar(
-        date_df, 
-        x='Date', 
-        y='Commits',
-        labels={'Date': 'Date', 'Commits': 'Number of Commits'},
-        title='Commit Activity Over Time'
+    # Add dots for each data point
+    fig.add_trace(
+        go.Scatter(
+            x=df['date'],
+            y=df['count'],
+            mode='markers',
+            marker=dict(color='#2563EB', size=8),
+            showlegend=False
+        )
     )
     
     # Update layout
     fig.update_layout(
-        xaxis_title='Date',
-        yaxis_title='Commits',
+        hovermode='x unified',
+        xaxis=dict(
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#E5E7EB',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#E5E7EB',
+            showgrid=True
+        ),
         plot_bgcolor='white',
-        hovermode='closest',
-        height=400,
-        margin=dict(l=40, r=40, t=40, b=40)
-    )
-    
-    # Color scale
-    fig.update_traces(
-        marker_color='#2563EB',
-        hovertemplate='Date: %{x}<br>Commits: %{y}<extra></extra>'
+        margin=dict(l=10, r=10, t=50, b=10)
     )
     
     return fig
@@ -71,70 +106,121 @@ def visualize_code_quality(file_results):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure object
     """
-    # Extract file names and scores
-    files = [result['file'].split('/')[-1] if '/' in result['file'] else result['file'] for result in file_results]
-    scores = [result['score'] for result in file_results]
-    issues_count = [len(result['issues']) for result in file_results]
+    if not file_results:
+        # Create an empty figure with a message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No file analysis data available",
+            x=0.5, y=0.5,
+            xref="paper", yref="paper",
+            showarrow=False,
+            font=dict(size=16)
+        )
+        return fig
     
-    # Truncate long filenames
-    truncated_files = [f[:20] + '...' if len(f) > 20 else f for f in files]
+    # Extract file paths and scores
+    files = []
+    scores = []
+    issue_counts = []
     
-    # Determine colors based on score
-    colors = ['#EF4444' if score < 6 else '#F59E0B' if score < 8 else '#10B981' for score in scores]
+    for result in file_results:
+        file_path = result['file_path']
+        score = result['result']['score']
+        issues = len(result['result']['issues'])
+        
+        # Truncate long file paths for better display
+        if len(file_path) > 40:
+            file_path = "..." + file_path[-37:]
+        
+        files.append(file_path)
+        scores.append(score)
+        issue_counts.append(issues)
     
-    # Create bar chart
+    # Color map based on score ranges
+    color_map = {
+        "high": "#10B981",    # Green for scores 7-10
+        "medium": "#F59E0B",  # Amber for scores 4-6.9
+        "low": "#EF4444"      # Red for scores 0-3.9
+    }
+    
+    # Assign colors based on scores
+    colors = [
+        color_map["high"] if score >= 7 else 
+        color_map["medium"] if score >= 4 else 
+        color_map["low"] 
+        for score in scores
+    ]
+    
+    # Create tooltip text
+    hover_text = [f"File: {f}<br>Score: {s}/10<br>Issues: {i}" for f, s, i in zip(files, scores, issue_counts)]
+    
+    # Create figure
     fig = go.Figure()
     
-    # Add score bars
-    fig.add_trace(go.Bar(
-        x=truncated_files,
-        y=scores,
-        name='Quality Score',
-        marker_color=colors,
-        text=scores,
-        textposition='auto',
-        hovertemplate='%{x}<br>Score: %{y:.1f}/10<extra></extra>'
-    ))
-    
-    # Add reference line for "good" score
-    fig.add_shape(
-        type='line',
-        x0=-0.5,
-        y0=8,
-        x1=len(files) - 0.5,
-        y1=8,
-        line=dict(
-            color='green',
-            width=2,
-            dash='dot'
+    # Add bar chart
+    fig.add_trace(
+        go.Bar(
+            x=files,
+            y=scores,
+            marker_color=colors,
+            hovertext=hover_text,
+            hoverinfo="text",
+            name="Quality Score"
         )
     )
     
-    # Add annotation for the reference line
-    fig.add_annotation(
-        x=len(files) - 1,
-        y=8.1,
-        text="Good Score Threshold",
-        showarrow=False,
-        font=dict(
-            color="green"
+    # Add a horizontal line at score 7 (good quality threshold)
+    fig.add_shape(
+        type="line",
+        x0=-0.5,
+        y0=7,
+        x1=len(files) - 0.5,
+        y1=7,
+        line=dict(
+            color="#10B981",
+            width=2,
+            dash="dash",
+        )
+    )
+    
+    # Add a horizontal line at score 4 (medium quality threshold)
+    fig.add_shape(
+        type="line",
+        x0=-0.5,
+        y0=4,
+        x1=len(files) - 0.5,
+        y1=4,
+        line=dict(
+            color="#F59E0B",
+            width=2,
+            dash="dash",
         )
     )
     
     # Update layout
     fig.update_layout(
-        title='Code Quality Scores by File',
-        xaxis_title='Files',
-        yaxis_title='Quality Score (0-10)',
-        yaxis_range=[0, 10.5],
+        title="Code Quality Scores by File",
+        xaxis=dict(
+            title="Files",
+            tickangle=45,
+            title_font=dict(size=14),
+            tickfont=dict(size=10),
+        ),
+        yaxis=dict(
+            title="Quality Score (0-10)",
+            range=[0, 10.5],
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#E5E7EB',
+            showgrid=True
+        ),
         plot_bgcolor='white',
-        hovermode='closest',
-        height=500,
-        margin=dict(l=40, r=40, t=60, b=80)
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+        ),
+        margin=dict(l=10, r=10, t=50, b=150)
     )
-    
-    # Rotate x-axis labels for better readability
-    fig.update_xaxes(tickangle=45)
     
     return fig
 
@@ -148,40 +234,172 @@ def visualize_issues_by_type(issues):
     Returns:
         plotly.graph_objects.Figure: A Plotly figure object
     """
+    if not issues:
+        # Create an empty figure with a message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No issues detected",
+            x=0.5, y=0.5,
+            xref="paper", yref="paper",
+            showarrow=False,
+            font=dict(size=16)
+        )
+        return fig
+    
     # Count issues by type
-    issue_types = [issue['type'] for issue in issues]
-    type_counter = Counter(issue_types)
+    issue_types = {}
+    for issue in issues:
+        issue_type = issue.get('type', 'Unknown')
+        if issue_type not in issue_types:
+            issue_types[issue_type] = 0
+        issue_types[issue_type] += 1
     
-    # Prepare data for visualization
-    issue_df = pd.DataFrame({
-        'Issue Type': list(type_counter.keys()),
-        'Count': list(type_counter.values())
-    })
+    # Convert to lists for plotting
+    types = list(issue_types.keys())
+    counts = list(issue_types.values())
     
-    # Sort by count
-    issue_df = issue_df.sort_values('Count', ascending=False)
+    # Sort by count (descending)
+    sorted_indices = sorted(range(len(counts)), key=lambda i: counts[i], reverse=True)
+    types = [types[i] for i in sorted_indices]
+    counts = [counts[i] for i in sorted_indices]
     
-    # Create bar chart
-    fig = px.bar(
-        issue_df, 
-        x='Issue Type', 
-        y='Count',
-        title='Issues by Type',
-        color='Count',
-        color_continuous_scale=['#10B981', '#F59E0B', '#EF4444']
+    # Define colors based on issue types
+    color_map = {
+        "Long line": "#F59E0B",
+        "Long function": "#F59E0B",
+        "Complex code": "#F59E0B",
+        "Inconsistent naming": "#3B82F6",
+        "Missing documentation": "#3B82F6",
+        "Potential security issue": "#EF4444",
+        "File size": "#F59E0B",
+        "Code duplication": "#F59E0B",
+        "Potential bug": "#EF4444",
+        "Performance issue": "#F59E0B",
+        "Code maintainability": "#F59E0B",
+        "Variable scope": "#3B82F6",
+        "Error handling": "#F59E0B",
+        "Code organization": "#3B82F6"
+    }
+    
+    # Assign colors, default to gray for unknown types
+    colors = [color_map.get(t, "#6B7280") for t in types]
+    
+    # Create figure
+    fig = go.Figure(
+        go.Bar(
+            x=counts,
+            y=types,
+            orientation='h',
+            marker_color=colors,
+            hovertemplate='%{y}: %{x} issues<extra></extra>'
+        )
     )
     
     # Update layout
     fig.update_layout(
-        xaxis_title='Issue Type',
-        yaxis_title='Number of Occurrences',
+        title="Issues by Type",
+        xaxis=dict(
+            title="Number of Issues",
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#E5E7EB',
+            showgrid=True
+        ),
+        yaxis=dict(
+            title="Issue Type",
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            automargin=True
+        ),
         plot_bgcolor='white',
-        hovermode='closest',
-        height=400,
-        margin=dict(l=40, r=40, t=60, b=80)
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+        ),
+        margin=dict(l=10, r=10, t=50, b=10)
     )
     
-    # Rotate x-axis labels for better readability
-    fig.update_xaxes(tickangle=45)
+    return fig
+
+def visualize_commit_activity_by_author(commits):
+    """
+    Visualize commit activity by author
+    
+    Args:
+        commits (list): List of commit data dictionaries
+        
+    Returns:
+        plotly.graph_objects.Figure: A Plotly figure object
+    """
+    if not commits:
+        # Create an empty figure with a message
+        fig = go.Figure()
+        fig.add_annotation(
+            text="No commit data available",
+            x=0.5, y=0.5,
+            xref="paper", yref="paper",
+            showarrow=False,
+            font=dict(size=16)
+        )
+        return fig
+    
+    # Count commits by author
+    author_counts = {}
+    for commit in commits:
+        author = commit.get('author', 'Unknown')
+        if author not in author_counts:
+            author_counts[author] = 0
+        author_counts[author] += 1
+    
+    # Convert to lists for plotting
+    authors = list(author_counts.keys())
+    counts = list(author_counts.values())
+    
+    # Sort by count (descending)
+    sorted_indices = sorted(range(len(counts)), key=lambda i: counts[i], reverse=True)
+    authors = [authors[i] for i in sorted_indices]
+    counts = [counts[i] for i in sorted_indices]
+    
+    # Limit to top 10 authors if there are many
+    if len(authors) > 10:
+        authors = authors[:10]
+        counts = counts[:10]
+    
+    # Generate colors
+    colors = px.colors.qualitative.Plotly[:len(authors)]
+    
+    # Create figure
+    fig = go.Figure(
+        go.Bar(
+            x=authors,
+            y=counts,
+            marker_color=colors,
+            hovertemplate='%{x}: %{y} commits<extra></extra>'
+        )
+    )
+    
+    # Update layout
+    fig.update_layout(
+        title="Commit Activity by Author",
+        xaxis=dict(
+            title="Author",
+            tickangle=45,
+            title_font=dict(size=14),
+            tickfont=dict(size=10),
+        ),
+        yaxis=dict(
+            title="Number of Commits",
+            title_font=dict(size=14),
+            tickfont=dict(size=12),
+            gridcolor='#E5E7EB',
+            showgrid=True
+        ),
+        plot_bgcolor='white',
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=12,
+        ),
+        margin=dict(l=10, r=10, t=50, b=100)
+    )
     
     return fig

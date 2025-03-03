@@ -1,110 +1,129 @@
 # GitHub Repository Analyzer
 
-![GitHub Repository Analyzer](https://img.shields.io/badge/Status-Active-brightgreen)
-![Python](https://img.shields.io/badge/Python-3.11-blue)
-![Streamlit](https://img.shields.io/badge/Streamlit-1.32.0-red)
+A powerful Streamlit-based tool for analyzing GitHub repositories, providing code quality insights, and suggesting improvements using pattern-based detection.
 
-[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-lg.svg)](https://huggingface.co/spaces)
+![GitHub Repository Analyzer](generated-icon.png)
 
-[![Duplicate this Space](https://huggingface.co/datasets/huggingface/badges/resolve/main/duplicate-this-space-lg.svg)](https://huggingface.co/spaces/huggingface-projects/diffusers-gallery?duplicate=true)
+## 📋 Overview
 
+GitHub Repository Analyzer is a web application that helps developers and teams analyze and improve their code quality. The tool provides:
 
+1. **Code Quality Analysis**: Pattern-based detection of common code issues and anti-patterns
+2. **Visualization**: Interactive graphs and charts for code metrics and commit history
+3. **Improvement Suggestions**: Actionable recommendations with example code fixes
+4. **Repository Insights**: Overview of repository activity, contributors, and structure
 
-A powerful web-based tool for analyzing GitHub repositories, providing code quality insights, and suggesting improvements using AI-powered pattern detection.
+## 🎯 Features
 
-## 🔍 Features
-
-- **Repository Analysis**: Fetch and analyze repository metadata, commit history, and code files
-- **Code Quality Assessment**: Evaluate code quality based on language-specific patterns and best practices
-- **Visualization**: Interactive charts for commit history and code quality metrics
-- **Improvement Suggestions**: Actionable recommendations to enhance code quality with example code
-- **Multi-language Support**: Analyze Python, JavaScript, Java, and more
+- **Repository Analysis**: Load any public GitHub repository via URL
+- **File Filtering**: Choose specific file types to analyze
+- **Customizable Analysis Depth**: Basic, Standard, or Deep analysis options
+- **Code Issue Detection**: Identify coding problems like:
+  - Long functions
+  - Complex code structures
+  - Inconsistent naming
+  - Missing documentation
+  - Potential security issues
+  - Performance bottlenecks
+- **Visual Reports**: Clean, interactive visualizations using Plotly
+- **Improvement Suggestions**: Practical code examples showing how to fix issues
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### Online Demo
 
-- Python 3.11+
-- Git
+Try the application online at:
+- [Replit](https://github-repo-analyzer.replit.app)
+- [Hugging Face Spaces](https://huggingface.co/spaces/username/github-repo-analyzer)
 
-### Installation
+### Local Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/github-repo-analyzer.git
-   cd github-repo-analyzer
-   ```
+See the [Installation Guide](INSTALLATION.md) for detailed setup instructions.
 
-2. Install the required packages:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Run the Streamlit app:
-   ```bash
-   streamlit run main.py
-   ```
-
-4. Open your browser and navigate to `http://localhost:8501`
-
-### Using GitHub Tokens (Optional)
-
-For increased API rate limits, set your GitHub personal access token as an environment variable:
-
+Quick start:
 ```bash
-export GITHUB_TOKEN=your_token_here
+# Clone repository
+git clone https://github.com/yourusername/github-repo-analyzer.git
+cd github-repo-analyzer
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run application
+streamlit run main.py
 ```
 
-## 🔧 Project Structure
+## 📊 Usage
 
-```
-├── .streamlit/                # Streamlit configuration
-│   └── config.toml            # Streamlit server and theme settings
-├── main.py                    # Application entry point
-├── github_api.py              # GitHub API integration
-├── code_analysis.py           # Code quality analysis logic
-├── visualization.py           # Data visualization components
-├── utils.py                   # Utility functions
-└── styles.css                 # Custom CSS styles
-```
+1. Enter a GitHub repository URL (e.g., `https://github.com/streamlit/streamlit`)
+2. Configure analysis settings:
+   - Select file types to analyze (Python, JavaScript, etc.)
+   - Set analysis depth (Basic, Standard, Deep)
+   - Set maximum files to analyze
+3. Click "Analyze Repository"
+4. Explore the results across different tabs:
+   - Repository Overview
+   - Code Quality Analysis
+   - Commit History
+   - Improvement Suggestions
 
-## 📊 How It Works
+### Screenshots
 
-1. **Input a GitHub Repository URL**: Enter any public GitHub repository URL
-2. **Select Analysis Options**: Choose file types, analysis depth, and other settings
-3. **Analyze**: The tool fetches repository data from GitHub's API
-4. **View Results**: Navigate through tabs to see commit history, code quality metrics, and suggestions
+*Screenshots coming soon*
 
-## 🧠 Code Analysis Engine
+## 🧠 How It Works
 
-The analysis engine uses a combination of:
+GitHub Repository Analyzer uses a combination of:
 
-- **Pattern matching**: Regular expressions to detect common code issues
-- **Language-specific rules**: Custom logic for different programming languages
-- **Simulated AI analysis**: Heuristic-based quality assessment
+1. **GitHub API Integration**: Fetches repository metadata, commit history, and file contents using REST API
+2. **Pattern Analysis**: Uses regular expressions and language-specific rules to detect code issues
+3. **Visualization Engine**: Transforms analysis data into interactive charts
+4. **Recommendation System**: Generates tailored improvement suggestions based on detected issues
 
-### Analysis Types
+## 🌟 Use Cases
 
-- **Basic**: Quick pattern-based scan (fastest)
-- **Standard**: Comprehensive code structure analysis (recommended)
-- **Deep**: Detailed analysis with more intensive checks
+- **Code Reviews**: Automate the initial code review process and focus human reviewers on complex issues
+- **Technical Debt**: Identify areas of code with the highest technical debt for refactoring
+- **Onboarding**: Help new team members understand code quality standards
+- **Continuous Improvement**: Regular analysis to track code quality trends over time
+
+## 🔒 Privacy & Security
+
+- Only public repositories can be analyzed
+- No code is stored or saved outside of your browser session
+- Analysis happens in real-time without saving repository content
+- GitHub API token is optional and never stored
+
+## 🛠️ Technical Details
+
+Built with:
+- [Streamlit](https://streamlit.io) - Web application framework
+- [Plotly](https://plotly.com) - Interactive visualizations
+- [GitHub API](https://docs.github.com/en/rest) - Repository access
+- Pattern-based code analysis
+
+## 📄 Documentation
+
+- [Installation Guide](INSTALLATION.md) - Setup instructions
+- [Deployment Guide](DEPLOYMENT.md) - Hosting options
+- [Contributing Guide](CONTRIBUTING.md) - Contribution guidelines
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please read the [Contributing Guide](CONTRIBUTING.md) for details on how to submit pull requests, report issues, and suggest improvements.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
+## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgements
 
-- [Streamlit](https://streamlit.io/) for the interactive web framework
-- [Plotly](https://plotly.com/python/) for data visualization
-- [GitHub API](https://docs.github.com/en/rest) for repository data access
+- The Streamlit team for creating an amazing framework for data applications
+- GitHub for providing a comprehensive API
+- All contributors and users of this tool
+
+---
+
+Made with ❤️ by [Your Name/Team]
+
+*This project is not affiliated with GitHub and is provided as-is under the MIT License*
