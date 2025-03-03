@@ -3,10 +3,12 @@ Utility functions for the GitHub Repository Analyzer
 """
 
 import re
-import streamlit as st
-from datetime import datetime
-import pytz
 import traceback
+from datetime import datetime
+
+import pytz
+import streamlit as st
+
 from logger import logger
 
 

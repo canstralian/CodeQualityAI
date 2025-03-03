@@ -7,10 +7,11 @@ URL generation, token exchange, and user information retrieval.
 """
 
 import os
+from typing import Any, Dict, Optional, Union
+from urllib.parse import urlencode
+
 import requests
 import streamlit as st
-from urllib.parse import urlencode
-from typing import Dict, Optional, Any, Union
 
 
 class GitHubOAuth:

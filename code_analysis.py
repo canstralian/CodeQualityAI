@@ -2,9 +2,10 @@
 Code Analysis Module for GitHub Repository Analyzer
 """
 
-import re
 import random
+import re
 import traceback
+
 from logger import logger
 
 
@@ -34,8 +35,8 @@ class CodeAnalyzer:
         """
         try:
             # Import required libraries
-            from transformers import T5ForConditionalGeneration, RobertaTokenizer
             import torch
+            from transformers import RobertaTokenizer, T5ForConditionalGeneration
 
             logger.info("Starting to load AI code analysis model")
             # This would load a pre-trained model in a full implementation

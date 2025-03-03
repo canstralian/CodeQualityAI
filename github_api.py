@@ -2,12 +2,14 @@
 GitHub Repository API Interface
 """
 
-import requests
 import base64
 import time
 import traceback
-from utils import truncate_text, format_commit_message, handle_error, get_file_extension
+
+import requests
+
 from logger import logger
+from utils import format_commit_message, get_file_extension, handle_error, truncate_text
 
 
 class GitHubRepo:

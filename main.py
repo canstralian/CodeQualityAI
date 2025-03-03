@@ -2,26 +2,28 @@
 GitHub Repository Analyzer - Main Application
 """
 
-import streamlit as st
-import traceback
 import os
-from github_api import GitHubRepo
+import traceback
+
+import streamlit as st
+
 from code_analysis import CodeAnalyzer
-from visualization import (
-    visualize_commit_history,
-    visualize_code_quality,
-    visualize_issues_by_type,
-)
+from github_api import GitHubRepo
+from logger import logger
 from utils import (
+    create_html_card,
+    create_repo_card,
+    display_code_with_issues,
+    get_file_extension,
+    handle_error,
     load_custom_css,
     parse_repo_url,
-    handle_error,
-    create_repo_card,
-    get_file_extension,
-    create_html_card,
-    display_code_with_issues,
 )
-from logger import logger
+from visualization import (
+    visualize_code_quality,
+    visualize_commit_history,
+    visualize_issues_by_type,
+)
 
 # Page configuration
 st.set_page_config(
