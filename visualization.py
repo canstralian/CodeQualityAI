@@ -1,4 +1,3 @@
-```python
 """
 Visualization module for GitHub Repository Analyzer
 This module provides functions to visualize various aspects of a GitHub repository's data, such as commit history, code quality metrics, and issue types.
@@ -8,7 +7,6 @@ import random
 from collections import Counter
 from datetime import datetime
 
-import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -33,6 +31,8 @@ def visualize_commit_history(commits):
     >>> fig = visualize_commit_history(commits)
     >>> fig.show()
     """
+    # Import pandas locally to avoid circular imports
+    import pandas as pd
     if not commits:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -132,6 +132,8 @@ def visualize_code_quality(file_results):
     >>> fig = visualize_code_quality(file_results)
     >>> fig.show()
     """
+    # Import pandas locally to avoid circular imports
+    import pandas as pd
     if not file_results:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -278,6 +280,8 @@ def visualize_issues_by_type(issues):
     >>> fig = visualize_issues_by_type(issues)
     >>> fig.show()
     """
+    # Import pandas locally to avoid circular imports
+    import pandas as pd
     if not issues:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -388,6 +392,8 @@ def visualize_commit_activity_by_author(commits):
     >>> fig = visualize_commit_activity_by_author(commits)
     >>> fig.show()
     """
+    # Import pandas locally to avoid circular imports
+    import pandas as pd
     if not commits:
         # Create an empty figure with a message
         fig = go.Figure()
@@ -440,7 +446,6 @@ def visualize_commit_activity_by_author(commits):
     # Update layout
     fig.update_layout(
         title="Commit Activity by Author",
-        xaxis=dict(...
         xaxis=dict(
             title="Author",
             tickangle=45,
@@ -463,4 +468,3 @@ def visualize_commit_activity_by_author(commits):
     )
 
     return fig
-```
