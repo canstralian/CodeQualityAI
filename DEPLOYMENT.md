@@ -93,6 +93,7 @@ git push -u origin main
 Ensure your repository contains these files:
 
 1. `requirements.txt` - List all dependencies
+
    ```
    streamlit>=1.20.0
    pandas>=1.5.0
@@ -140,42 +141,42 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-    - name: Test with pytest
-      run: |
-        pytest
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      - name: Test with pytest
+        run: |
+          pytest
 
   deploy:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-    - name: Deploy to Hugging Face Spaces
-      uses: huggingface/huggingface-spaces-deploy-action@main
-      with:
-        token: ${{ secrets.HF_TOKEN }}
-        space_id: yourusername/github-repo-analyzer
+      - uses: actions/checkout@v3
+      - name: Deploy to Hugging Face Spaces
+        uses: huggingface/huggingface-spaces-deploy-action@main
+        with:
+          token: ${{ secrets.HF_TOKEN }}
+          space_id: yourusername/github-repo-analyzer
 ```
 
 ## Monitoring
@@ -231,6 +232,7 @@ git push origin main
 If connected to GitHub, your Space will automatically update when you push to your repository.
 
 For manual updates:
+
 1. Go to your Space
 2. Click "Files" tab
 3. Upload or edit files directly
@@ -240,13 +242,16 @@ For manual updates:
 ### Common Deployment Issues
 
 1. **Dependencies Missing**
+
    - Check requirements.txt is complete
    - Verify Hugging Face Spaces requirements
 
 2. **Port Configuration**
+
    - Ensure Streamlit config uses correct port (7860 for Hugging Face)
 
 3. **API Rate Limiting**
+
    - Add GITHUB_TOKEN to environment secrets
    - Implement retry logic for API calls
 
