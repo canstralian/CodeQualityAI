@@ -111,7 +111,7 @@ def main():
         with st.spinner("Analyzing repository... This may take a few moments."):
             try:
                 logger.info(f"Starting analysis of repository: {repo_url}")
-                
+
                 # Parse repository URL
                 owner, repo_name = parse_repo_url(repo_url)
                 if not owner or not repo_name:
@@ -127,7 +127,7 @@ def main():
                 # Get repository information
                 logger.info(f"Fetching repository information for {owner}/{repo_name}")
                 repo_info = repo.get_repo_info()
-                
+
                 # Log comprehensive repository information
                 logger.info(f"Successfully retrieved repo: {repo_info['full_name']}")
                 logger.debug(f"Repository details: name={repo_info['name']}, owner={owner}, " +
@@ -205,7 +205,7 @@ def main():
                             }
                         )
                         logger.debug(f"Analysis complete for {file_path}: score={result['score']}, issues={len(result['issues'])}")
-                        
+
                     except Exception as file_error:
                         logger.error(f"Error processing file {file_path}: {str(file_error)}")
                         logger.debug(f"File processing error details: {traceback.format_exc()}")
@@ -213,7 +213,7 @@ def main():
                         continue
 
                 logger.info(f"Analysis complete. Processed {len(analysis_results)} files")
-                
+
                 # Store data in session state
                 st.session_state.repo_data = {
                     "info": repo_info,
@@ -226,7 +226,7 @@ def main():
 
                 # Reset selected tab
                 st.session_state.selected_tab = 0
-                
+
                 logger.info("Successfully completed repository analysis")
 
                 # Force a rerun to show results
