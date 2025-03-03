@@ -1,7 +1,8 @@
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 import streamlit as st
+
 
 @pytest.fixture(autouse=True)
 def mock_streamlit():
@@ -12,7 +13,7 @@ def mock_streamlit():
     # Create mock session state if it doesn't exist
     if not hasattr(st, "session_state"):
         st.session_state = MagicMock()
-        
+
     # Mock common Streamlit functions
     st.title = MagicMock()
     st.header = MagicMock()
@@ -29,7 +30,9 @@ def mock_streamlit():
     st.multiselect = MagicMock(return_value=["py", "js"])
     st.select_slider = MagicMock(return_value="Standard")
     st.slider = MagicMock(return_value=10)
-    st.tabs = MagicMock(return_value=[MagicMock(), MagicMock(), MagicMock(), MagicMock()])
+    st.tabs = MagicMock(
+        return_value=[MagicMock(), MagicMock(), MagicMock(), MagicMock()]
+    )
     st.rerun = MagicMock()
     st.metric = MagicMock()
     st.dataframe = MagicMock()
@@ -38,8 +41,9 @@ def mock_streamlit():
     st.expander = MagicMock()
     st.code = MagicMock()
     st.selectbox = MagicMock()
-    
+
     yield st
+
 
 @pytest.fixture
 def github_repo_mock():
@@ -48,39 +52,42 @@ def github_repo_mock():
     """
     mock = MagicMock()
     mock.get_repo_info.return_value = {
-        'full_name': 'owner/repo',
-        'name': 'repo',
-        'stars': 10,
-        'forks': 5,
-        'language': 'Python',
-        'license': 'MIT',
-        'default_branch': 'main',
-        'description': 'Test repository',
-        'watchers_count': 8,
-        'created_at': '2023-01-01T12:00:00Z',
-        'updated_at': '2023-02-01T12:00:00Z',
-        'url': 'https://github.com/owner/repo'
+        "full_name": "owner/repo",
+        "name": "repo",
+        "stars": 10,
+        "forks": 5,
+        "language": "Python",
+        "license": "MIT",
+        "default_branch": "main",
+        "description": "Test repository",
+        "watchers_count": 8,
+        "created_at": "2023-01-01T12:00:00Z",
+        "updated_at": "2023-02-01T12:00:00Z",
+        "url": "https://github.com/owner/repo",
     }
     mock.get_commit_history.return_value = [
         {
-            'hash': 'abc123',
-            'author': 'Test User',
-            'email': 'test@example.com',
-            'date': '2023-03-01T12:00:00Z',
-            'message': 'Initial commit',
-            'url': 'https://github.com/owner/repo/commit/abc123'
+            "hash": "abc123",
+            "author": "Test User",
+            "email": "test@example.com",
+            "date": "2023-03-01T12:00:00Z",
+            "message": "Initial commit",
+            "url": "https://github.com/owner/repo/commit/abc123",
         }
     ]
     mock.get_repository_files.return_value = [
         {
-            'path': 'file.py',
-            'size': 100,
-            'url': 'https://api.github.com/repos/owner/repo/contents/file.py'
+            "path": "file.py",
+            "size": 100,
+            "url": "https://api.github.com/repos/owner/repo/contents/file.py",
         }
     ]
-    mock.get_file_content.return_value = 'def hello():\n    print("Hello World")\n    return None'
-    
+    mock.get_file_content.return_value = (
+        'def hello():\n    print("Hello World")\n    return None'
+    )
+
     return mock
+
 
 @pytest.fixture
 def code_analyzer_mock():
@@ -89,26 +96,28 @@ def code_analyzer_mock():
     """
     mock = MagicMock()
     mock.analyze_code.return_value = {
-        'filename': 'file.py',
-        'score': 8.5,
-        'issues': [
+        "filename": "file.py",
+        "score": 8.5,
+        "issues": [
             {
-                'line': 2,
-                'type': 'Print statement',
-                'severity': 'warning',
-                'message': 'Avoid print statements in production code'
+                "line": 2,
+                "type": "Print statement",
+                "severity": "warning",
+                "message": "Avoid print statements in production code",
             }
         ],
-        'suggestions': [
+        "suggestions": [
             {
-                'title': 'Use Logging',
-                'description': 'Replace print statements with proper logging',
-                'example': '# Before\nprint("Hello World")\n\n# After\nimport logging\nlogging.info("Hello World")'
+                "title": "Use Logging",
+                "description": "Replace print statements with proper logging",
+                "example": '# Before\nprint("Hello World")\n\n# After\nimport logging\nlogging.info("Hello World")',
             }
-        ]
+        ],
     }
-    
+
     return mock
+
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -131,6 +140,7 @@ def db():
     # Import Base here to avoid circular imports
     try:
         from app.database import Base
+
         Base.metadata.create_all(bind=engine)
         yield TestingSessionLocal()
         Base.metadata.drop_all(bind=engine)

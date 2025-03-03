@@ -1,5 +1,7 @@
+```python
 """
 Visualization module for GitHub Repository Analyzer
+This module provides functions to visualize various aspects of a GitHub repository's data, such as commit history, code quality metrics, and issue types.
 """
 
 import random
@@ -10,16 +12,26 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-
 def visualize_commit_history(commits):
     """
     Visualize commit history with Plotly
 
     Args:
-        commits (list): List of commit data dictionaries
+        commits (list): List of commit data dictionaries, where each dictionary contains information about a single commit, such as the author, date, and number of changes.
 
     Returns:
-        plotly.graph_objects.Figure: A Plotly figure object
+        plotly.graph_objects.Figure: A Plotly figure object representing the commit history visualization.
+
+    This function takes a list of commit data dictionaries as input and generates a line chart to visualize the commit history over time. It counts the number of commits per day and plots the resulting time series. The function also adds markers for each data point to provide more detailed information when the user hovers over the chart.
+
+    Example:
+    >>> commits = [
+    ...     {"author": "John Doe", "date": "2023-04-01T12:00:00Z", "changes": 10},
+    ...     {"author": "Jane Smith", "date": "2023-04-02T14:30:00Z", "changes": 5},
+    ...     {"author": "John Doe", "date": "2023-04-03T09:45:00Z", "changes": 8},
+    ... ]
+    >>> fig = visualize_commit_history(commits)
+    >>> fig.show()
     """
     if not commits:
         # Create an empty figure with a message
@@ -99,16 +111,26 @@ def visualize_commit_history(commits):
 
     return fig
 
-
 def visualize_code_quality(file_results):
     """
     Visualize code quality metrics with Plotly
 
     Args:
-        file_results (list): List of file analysis results
+        file_results (list): List of file analysis results, where each result is a dictionary containing information about the file's path, quality score, and the number of issues detected.
 
     Returns:
-        plotly.graph_objects.Figure: A Plotly figure object
+        plotly.graph_objects.Figure: A Plotly figure object representing the code quality visualization.
+
+    This function takes a list of file analysis results and generates a bar chart to visualize the code quality scores for each file. The quality scores are represented by the bar heights, and the files are displayed on the x-axis. The bars are colored based on the quality score ranges (green for high, amber for medium, and red for low). The function also adds horizontal lines to indicate the quality score thresholds and provides hover information for each file, displaying the file path, quality score, and number of issues.
+
+    Example:
+    >>> file_results = [
+    ...     {"file_path": "src/main.py", "result": {"score": 8.5, "issues": []}},
+    ...     {"file_path": "src/utils.py", "result": {"score": 6.2, "issues": []}},
+    ...     {"file_path": "tests/test_main.py", "result": {"score": 3.8, "issues": []}},
+    ... ]
+    >>> fig = visualize_code_quality(file_results)
+    >>> fig.show()
     """
     if not file_results:
         # Create an empty figure with a message
@@ -235,16 +257,26 @@ def visualize_code_quality(file_results):
 
     return fig
 
-
 def visualize_issues_by_type(issues):
     """
     Visualize code issues by type
 
     Args:
-        issues (list): Flattened list of all issues
+        issues (list): Flattened list of all issues, where each issue is a dictionary containing information about the issue type and other relevant details.
 
     Returns:
-        plotly.graph_objects.Figure: A Plotly figure object
+        plotly.graph_objects.Figure: A Plotly figure object representing the issues by type visualization.
+
+    This function takes a list of code issues and generates a horizontal bar chart to visualize the number of issues by type. The issue types are displayed on the y-axis, and the number of issues for each type is shown on the x-axis. The bars are colored based on the issue type categories (e.g., amber for maintainability issues, red for potential bugs, blue for documentation issues). The function also provides hover information for each bar, displaying the issue type and the number of issues.
+
+    Example:
+    >>> issues = [
+    ...     {"type": "Long line", "description": "Line exceeds 80 characters"},
+    ...     {"type": "Potential bug", "description": "Unused variable"},
+    ...     {"type": "Missing documentation", "description": "No docstring for function"},
+    ... ]
+    >>> fig = visualize_issues_by_type(issues)
+    >>> fig.show()
     """
     if not issues:
         # Create an empty figure with a message
@@ -335,16 +367,26 @@ def visualize_issues_by_type(issues):
 
     return fig
 
-
 def visualize_commit_activity_by_author(commits):
     """
     Visualize commit activity by author
 
     Args:
-        commits (list): List of commit data dictionaries
+        commits (list): List of commit data dictionaries, where each dictionary contains information about a single commit, such as the author, date, and number of changes.
 
     Returns:
-        plotly.graph_objects.Figure: A Plotly figure object
+        plotly.graph_objects.Figure: A Plotly figure object representing the commit activity by author visualization.
+
+    This function takes a list of commit data dictionaries and generates a bar chart to visualize the commit activity by author. The authors are displayed on the x-axis, and the number of commits by each author is shown on the y-axis. The bars are colored using a set of distinct colors from the Plotly color palette. The function also provides hover information for each bar, displaying the author name and the number of commits.
+
+    Example:
+    >>> commits = [
+    ...     {"author": "John Doe", "date": "2023-04-01T12:00:00Z", "changes": 10},
+    ...     {"author": "Jane Smith", "date": "2023-04-02T14:30:00Z", "changes": 5},
+    ...     {"author": "John Doe", "date": "2023-04-03T09:45:00Z", "changes": 8},
+    ... ]
+    >>> fig = visualize_commit_activity_by_author(commits)
+    >>> fig.show()
     """
     if not commits:
         # Create an empty figure with a message
@@ -398,6 +440,7 @@ def visualize_commit_activity_by_author(commits):
     # Update layout
     fig.update_layout(
         title="Commit Activity by Author",
+        xaxis=dict(...
         xaxis=dict(
             title="Author",
             tickangle=45,
@@ -420,3 +463,4 @@ def visualize_commit_activity_by_author(commits):
     )
 
     return fig
+```
