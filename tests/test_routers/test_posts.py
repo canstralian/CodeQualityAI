@@ -1,9 +1,8 @@
-
 # tests/conftest.py
 import pytest
+from app.database import Base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.database import Base
 
 # Use an in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

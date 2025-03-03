@@ -2,14 +2,12 @@
 GitHub Repository API Interface
 """
 
+import requests
 import base64
 import time
 import traceback
-
-import requests
-
+from utils import truncate_text, format_commit_message, handle_error, get_file_extension
 from logger import logger
-from utils import format_commit_message, get_file_extension, handle_error, truncate_text
 
 
 class GitHubRepo:
@@ -105,13 +103,20 @@ class GitHubRepo:
                     # Use an iterative approach instead of recursion to avoid stack overflow
                     for retry_attempt in range(3):  # Limit retries to 3 attempts
                         logger.info(f"Retry attempt {retry_attempt + 1} for {endpoint}")
-                        retry_response = requests.get(url, headers=self.headers, params=params) if method == "GET" else requests.request(method, url, headers=self.headers, json=params)
+                        retry_response = (
+                            requests.get(url, headers=self.headers, params=params) 
+                            if method == "GET" 
+                            else requests.request(
+                                method, url, headers=self.headers, json=params
+                            )
+                        )
                         
                         if retry_response.status_code == 200:
                             logger.info(f"Retry successful for {endpoint}")
                             return retry_response.json()
                         
-                        if retry_response.status_code != 403 or int(retry_response.headers.get("X-RateLimit-Remaining", 1)) > 0:
+                        remaining = int(retry_response.headers.get("X-RateLimit-Remaining", 1))
+                        if retry_response.status_code != 403 or remaining > 0:
                             # If the error is not rate limiting, break and let the regular error handling take over
                             break
                             

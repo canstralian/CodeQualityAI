@@ -1,11 +1,15 @@
 """
-Logging module for GitHub Repository Analyzer
+Logging module for GitHub Repository Analyzer.
+
+This module sets up logging configuration with both console and file handlers,
+enabling comprehensive logging for the application.
 """
 
 import logging
 import os
 import sys
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 # Create logs directory if it doesn't exist
 os.makedirs("logs", exist_ok=True)
@@ -37,8 +41,6 @@ def setup_logger(name="github_analyzer"):
     console_handler.setFormatter(formatter)
 
     # Create rotating file handler for debug level logs
-    from logging.handlers import RotatingFileHandler
-
     log_filename = f"logs/app_{datetime.now().strftime('%Y%m%d')}.log"
     file_handler = RotatingFileHandler(
         log_filename,
