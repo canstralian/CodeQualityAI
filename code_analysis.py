@@ -21,6 +21,7 @@ class CodeAnalyzer:
         try:
             # Attempt to import transformers
             import transformers
+
             logger.info("Transformers library successfully imported")
             self.model_loaded = True
         except ImportError as e:
@@ -61,7 +62,7 @@ class CodeAnalyzer:
             dict: Analysis results including quality score, issues and suggestions
         """
         logger.info(f"Starting code analysis for {filename} with {depth} depth")
-        
+
         try:
             # Define analysis depth factors
             depth_factor = {
@@ -72,7 +73,9 @@ class CodeAnalyzer:
 
             # Pattern-based analysis
             pattern_results = self._pattern_analysis(code, file_extension)
-            logger.debug(f"Pattern analysis for {filename} found {len(pattern_results['issues'])} issues")
+            logger.debug(
+                f"Pattern analysis for {filename} found {len(pattern_results['issues'])} issues"
+            )
 
             # Use AI model if loaded, otherwise use simulated analysis
             if self.model_loaded and depth == "Deep":
@@ -80,10 +83,14 @@ class CodeAnalyzer:
                 ai_results = self._ai_analysis(code, file_extension)
             else:
                 if depth == "Deep":
-                    logger.debug("AI model not loaded, falling back to simulated analysis")
+                    logger.debug(
+                        "AI model not loaded, falling back to simulated analysis"
+                    )
                 ai_results = self._simulated_ai_analysis(code, file_extension)
-            
-            logger.debug(f"AI analysis for {filename} found {len(ai_results['issues'])} issues")
+
+            logger.debug(
+                f"AI analysis for {filename} found {len(ai_results['issues'])} issues"
+            )
 
             # Combine results
             issues = pattern_results["issues"] + ai_results["issues"]
@@ -103,7 +110,9 @@ class CodeAnalyzer:
                         code, file_extension, len(issues)
                     )
                     issues.extend(additional_issues)
-                    logger.debug(f"Deep analysis: added {len(additional_issues)} additional issues")
+                    logger.debug(
+                        f"Deep analysis: added {len(additional_issues)} additional issues"
+                    )
 
             # Calculate quality score (0-10)
             # Base score starts at 10 and gets reduced for each issue
@@ -122,8 +131,10 @@ class CodeAnalyzer:
 
             # Generate improvement suggestions
             suggestions = self._generate_suggestions(code, issues, file_extension)
-            
-            logger.info(f"Completed analysis for {filename}: score={quality_score}, issues={len(issues)}")
+
+            logger.info(
+                f"Completed analysis for {filename}: score={quality_score}, issues={len(issues)}"
+            )
 
             return {
                 "filename": filename,
@@ -134,22 +145,26 @@ class CodeAnalyzer:
         except Exception as e:
             logger.error(f"Error analyzing {filename}: {str(e)}")
             logger.debug(f"Analysis error details: {traceback.format_exc()}")
-            
+
             # Return a minimal result set with the error
             return {
                 "filename": filename,
                 "score": 0.0,
-                "issues": [{
-                    "line": 1,
-                    "type": "Analysis Error",
-                    "severity": "error",
-                    "message": f"Error analyzing file: {str(e)}"
-                }],
-                "suggestions": [{
-                    "title": "Fix Analysis Error",
-                    "description": "The file could not be properly analyzed due to an error. Check file format and content.",
-                    "example": "# No example available for this error"
-                }]
+                "issues": [
+                    {
+                        "line": 1,
+                        "type": "Analysis Error",
+                        "severity": "error",
+                        "message": f"Error analyzing file: {str(e)}",
+                    }
+                ],
+                "suggestions": [
+                    {
+                        "title": "Fix Analysis Error",
+                        "description": "The file could not be properly analyzed due to an error. Check file format and content.",
+                        "example": "# No example available for this error",
+                    }
+                ],
             }
 
     def _pattern_analysis(self, code, file_extension):

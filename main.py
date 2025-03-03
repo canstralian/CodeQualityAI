@@ -130,9 +130,11 @@ def main():
 
                 # Log comprehensive repository information
                 logger.info(f"Successfully retrieved repo: {repo_info['full_name']}")
-                logger.debug(f"Repository details: name={repo_info['name']}, owner={owner}, " +
-                             f"stars={repo_info['stars']}, forks={repo_info['forks']}, " +
-                             f"language={repo_info['language']}, license={repo_info['license']}")
+                logger.debug(
+                    f"Repository details: name={repo_info['name']}, owner={owner}, "
+                    + f"stars={repo_info['stars']}, forks={repo_info['forks']}, "
+                    + f"language={repo_info['language']}, license={repo_info['license']}"
+                )
 
                 # Get commit history
                 logger.info(f"Fetching commit history for {owner}/{repo_name}")
@@ -140,7 +142,9 @@ def main():
                 logger.debug(f"Retrieved {len(commits)} commits")
 
                 # Get repository files for analysis
-                logger.info(f"Fetching repository files for analysis (max: {max_files}, types: {file_types})")
+                logger.info(
+                    f"Fetching repository files for analysis (max: {max_files}, types: {file_types})"
+                )
                 files = repo.get_repository_files(
                     max_files=max_files, file_extensions=file_types
                 )
@@ -169,8 +173,12 @@ def main():
                             "dist",
                             "build",
                         ]
-                        if any(excluded_dir in file_path for excluded_dir in excluded_dirs):
-                            logger.debug(f"Skipping excluded directory file: {file_path}")
+                        if any(
+                            excluded_dir in file_path for excluded_dir in excluded_dirs
+                        ):
+                            logger.debug(
+                                f"Skipping excluded directory file: {file_path}"
+                            )
                             continue
 
                         # Get file content
@@ -188,7 +196,9 @@ def main():
                         logger.debug(f"File extension for {file_path}: {extension}")
 
                         # Analyze code quality
-                        logger.debug(f"Analyzing code quality for {file_path} with {analysis_depth} depth")
+                        logger.debug(
+                            f"Analyzing code quality for {file_path} with {analysis_depth} depth"
+                        )
                         result = analyzer.analyze_code(
                             code=content,
                             filename=file_path,
@@ -204,15 +214,23 @@ def main():
                                 "result": result,
                             }
                         )
-                        logger.debug(f"Analysis complete for {file_path}: score={result['score']}, issues={len(result['issues'])}")
+                        logger.debug(
+                            f"Analysis complete for {file_path}: score={result['score']}, issues={len(result['issues'])}"
+                        )
 
                     except Exception as file_error:
-                        logger.error(f"Error processing file {file_path}: {str(file_error)}")
-                        logger.debug(f"File processing error details: {traceback.format_exc()}")
+                        logger.error(
+                            f"Error processing file {file_path}: {str(file_error)}"
+                        )
+                        logger.debug(
+                            f"File processing error details: {traceback.format_exc()}"
+                        )
                         # Continue with other files even if one fails
                         continue
 
-                logger.info(f"Analysis complete. Processed {len(analysis_results)} files")
+                logger.info(
+                    f"Analysis complete. Processed {len(analysis_results)} files"
+                )
 
                 # Store data in session state
                 st.session_state.repo_data = {
@@ -275,8 +293,8 @@ def display_results():
             st.metric("Files Analyzed", len(analysis_results))
         with col2:
             avg_quality = (
-                sum(result["result"]["score"] for result in analysis_results) /
-                len(analysis_results)
+                sum(result["result"]["score"] for result in analysis_results)
+                / len(analysis_results)
                 if analysis_results
                 else 0
             )
