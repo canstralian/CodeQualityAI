@@ -14,15 +14,18 @@ class GitHubOAuth:
         """
         Initialize GitHub OAuth with client ID and secret from environment variables
         """
-        self.client_id = os.getenv("GITHUB_CLIENT_ID")
+        # Use environment variable or default to the provided Client ID
+        self.client_id = os.getenv("GITHUB_CLIENT_ID", "Iv23li4HONY9xwkd821t")
         self.client_secret = os.getenv("GITHUB_CLIENT_SECRET")
+        self.webhook_secret = os.getenv("WEBHOOK_SECRET_KEY")
         self.redirect_uri = os.getenv("GITHUB_REDIRECT_URI", "")
         self.base_url = "https://github.com"
         self.api_url = "https://api.github.com"
+        self.app_id = "1164145"  # GitHub App ID
 
-        if not self.client_id or not self.client_secret:
+        if not self.client_secret:
             st.warning(
-                "GitHub OAuth credentials not configured. Set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET environment variables."
+                "GitHub OAuth client secret not configured. Set GITHUB_CLIENT_SECRET environment variable."
             )
 
     def get_authorization_url(self, state=None):
