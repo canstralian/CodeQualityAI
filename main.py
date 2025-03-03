@@ -230,11 +230,12 @@ def main():
                 logger.info("Successfully completed repository analysis")
 
                 # Force a rerun to show results
-                st.experimental_rerun()
+                st.rerun()
 
             except Exception as e:
                 logger.error(f"Fatal error during repository analysis: {str(e)}")
                 logger.debug(f"Analysis error details: {traceback.format_exc()}")
+                logger.error(f"Application error: {str(e)}")
                 handle_error(str(e))
 
     # Display results if repository has been analyzed
