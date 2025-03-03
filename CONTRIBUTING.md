@@ -63,15 +63,18 @@ This document was adapted from open-source contribution guidelines templates.
 ## Coding Conventions
 
 ### Python
+
 - Follow PEP 8 style guide
 - Use docstrings for all functions and classes
 - Add type hints where appropriate
 
 ### JavaScript
+
 - Follow ES6 standards
 - Use camelCase for variable names
 
 ### Streamlit
+
 - Group related widgets together
 - Use appropriate containers (columns, expanders, etc.)
 - Follow Streamlit best practices for performance

@@ -37,6 +37,7 @@ GitHub Repository Analyzer is a web application that helps developers and teams 
 ### Online Demo
 
 Try the application online at:
+
 - [Replit](https://github-repo-analyzer.replit.app)
 - [Hugging Face Spaces](https://huggingface.co/spaces/username/github-repo-analyzer)
 
@@ -45,6 +46,7 @@ Try the application online at:
 See the [Installation Guide](INSTALLATION.md) for detailed setup instructions.
 
 Quick start:
+
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/github-repo-analyzer.git
@@ -73,7 +75,7 @@ streamlit run main.py
 
 ### Screenshots
 
-*Screenshots coming soon*
+_Screenshots coming soon_
 
 ## 🧠 How It Works
 
@@ -101,6 +103,7 @@ GitHub Repository Analyzer uses a combination of:
 ## 🛠️ Technical Details
 
 Built with:
+
 - [Streamlit](https://streamlit.io) - Web application framework
 - [Plotly](https://plotly.com) - Interactive visualizations
 - [GitHub API](https://docs.github.com/en/rest) - Repository access
