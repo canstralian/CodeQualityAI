@@ -96,7 +96,7 @@ def main():
         max_files = st.slider("Maximum Files to Analyze", 1, 50, 10)
 
         # GitHub token (optional)
-        github_token = os.environ.get("GITHUB_TOKEN")
+        github_token = os.environ.get("GH_TOKEN")
         if not github_token:
             st.markdown("---")
             st.markdown(
