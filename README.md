@@ -2,6 +2,10 @@
 
 A powerful Streamlit-based tool for analyzing GitHub repositories, providing code quality insights, and suggesting improvements using pattern-based detection.
 
+[![Follow me on HF](https://huggingface.co/datasets/huggingface/badges/resolve/main/follow-me-on-HF-xl-dark.svg)](https://huggingface.co/Chunte)
+
+[![Open in Spaces](https://huggingface.co/datasets/huggingface/badges/resolve/main/open-in-hf-spaces-xl.svg)](https://huggingface.co/spaces)
+
 ![GitHub Repository Analyzer](generated-icon.png)
 
 ## 📋 Overview
@@ -33,6 +37,7 @@ GitHub Repository Analyzer is a web application that helps developers and teams 
 ### Online Demo
 
 Try the application online at:
+
 - [Replit](https://github-repo-analyzer.replit.app)
 - [Hugging Face Spaces](https://huggingface.co/spaces/username/github-repo-analyzer)
 
@@ -41,6 +46,7 @@ Try the application online at:
 See the [Installation Guide](INSTALLATION.md) for detailed setup instructions.
 
 Quick start:
+
 ```bash
 # Clone repository
 git clone https://github.com/yourusername/github-repo-analyzer.git
@@ -69,7 +75,7 @@ streamlit run main.py
 
 ### Screenshots
 
-*Screenshots coming soon*
+_Screenshots coming soon_
 
 ## 🧠 How It Works
 
@@ -97,6 +103,7 @@ GitHub Repository Analyzer uses a combination of:
 ## 🛠️ Technical Details
 
 Built with:
+
 - [Streamlit](https://streamlit.io) - Web application framework
 - [Plotly](https://plotly.com) - Interactive visualizations
 - [GitHub API](https://docs.github.com/en/rest) - Repository access
@@ -124,6 +131,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Made with ❤️ by [Your Name/Team]
+Made with ❤️ by Canstralian/Chemically Motivated Solutions
 
-*This project is not affiliated with GitHub and is provided as-is under the MIT License*
+*This project is not affiliated with GitHub and is provided as-is under the MIT License*add emojis to make the read more engaging and then add some more relevant, working badges for the repo on github, possibly tied in with the .yml workflow

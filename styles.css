@@ -2,22 +2,22 @@
 
 /* ---- Main Theme Colors ---- */
 :root {
-  --primary-color: #2563EB;     /* Blue for primary actions and highlights */
-  --secondary-color: #404040;   /* Dark gray for secondary elements */
-  --background-color: #FFFFFF;  /* White background */
-  --text-color: #1F2937;        /* Dark text for readability */
-  --success-color: #10B981;     /* Green for success messages */
-  --error-color: #EF4444;       /* Red for errors */
-  --warning-color: #F59E0B;     /* Amber for warnings */
-  --info-color: #3B82F6;        /* Blue for info messages */
-  --light-gray: #F3F4F6;        /* Light gray for backgrounds */
-  --border-color: #E5E7EB;      /* Border color */
+  --primary-color: #2563eb; /* Blue for primary actions and highlights */
+  --secondary-color: #404040; /* Dark gray for secondary elements */
+  --background-color: #ffffff; /* White background */
+  --text-color: #1f2937; /* Dark text for readability */
+  --success-color: #10b981; /* Green for success messages */
+  --error-color: #ef4444; /* Red for errors */
+  --warning-color: #f59e0b; /* Amber for warnings */
+  --info-color: #3b82f6; /* Blue for info messages */
+  --light-gray: #f3f4f6; /* Light gray for backgrounds */
+  --border-color: #e5e7eb; /* Border color */
 }
 
 /* ---- Typography ---- */
 /* Main font stack: Inter, system UI fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap");
 
 /* Apply to all elements for consistent sizing */
 * {
@@ -25,8 +25,14 @@
 }
 
 /* Apply main font and color to body */
-html, body, [class*="css"] {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+html,
+body,
+[class*="css"] {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
   color: var(--text-color);
 }
 
@@ -39,7 +45,12 @@ html, body, [class*="css"] {
 /* ---- Streamlit Elements Styling ---- */
 
 /* Headers */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 600;
   color: var(--text-color);
 }
@@ -75,8 +86,8 @@ h3 {
 }
 
 .stButton > button:first-child:hover {
-  background-color: #1D4ED8; /* Darker blue on hover */
-  border-color: #1D4ED8;
+  background-color: #1d4ed8; /* Darker blue on hover */
+  border-color: #1d4ed8;
 }
 
 .stButton > button:not(:first-child) {
@@ -150,7 +161,7 @@ h3 {
 
 /* Code blocks and syntax highlighting */
 code {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: "JetBrains Mono", monospace;
   font-size: 0.9rem;
   padding: 0.2rem 0.4rem;
   background-color: var(--light-gray);
@@ -233,15 +244,15 @@ pre {
   .main .block-container {
     padding: 0.5rem;
   }
-  
+
   h1 {
     font-size: 1.5rem;
   }
-  
+
   h2 {
     font-size: 1.25rem;
   }
-  
+
   h3 {
     font-size: 1.125rem;
   }

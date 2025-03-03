@@ -37,6 +37,7 @@ This Streamlit application allows you to analyze any public GitHub repository fo
 ### Analysis Engine
 
 The code analysis engine uses:
+
 - Pattern-based detection with regular expressions
 - Language-specific rule sets
 - Code structure analysis
@@ -45,6 +46,7 @@ The code analysis engine uses:
 ### Visualizations
 
 Interactive charts powered by Plotly:
+
 - Commit history timeline
 - Code quality scores by file
 - Issue type distribution
@@ -52,6 +54,7 @@ Interactive charts powered by Plotly:
 ## 🔄 API Integration
 
 This tool uses the GitHub REST API to:
+
 - Fetch repository metadata
 - Access commit history
 - Retrieve file contents for analysis
@@ -65,6 +68,7 @@ This tool uses the GitHub REST API to:
 ## 🤝 Contributing
 
 This project is open-source! Contributions are welcome via:
+
 - [GitHub Repository](https://github.com/username/github-repo-analyzer)
 - [Hugging Face Spaces](https://huggingface.co/spaces/username/github-repo-analyzer/discussions)
 
