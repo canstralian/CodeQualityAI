@@ -18,12 +18,70 @@ st.set_page_config(
 # Load custom CSS
 load_custom_css()
 
+# Import GitHub OAuth
+from github_oauth import GitHubOAuth
+
+# Initialize GitHub OAuth
+github_oauth = GitHubOAuth()
+
+# Initialize session state
+if 'access_token' not in st.session_state:
+    st.session_state['access_token'] = None
+if 'user_info' not in st.session_state:
+    st.session_state['user_info'] = None
+
+# Handle OAuth callback and logout
+params = st.experimental_get_query_params()
+if 'code' in params:
+    code = params['code'][0]
+    token_response = github_oauth.exchange_code_for_token(code)
+    if token_response and 'access_token' in token_response:
+        st.session_state['access_token'] = token_response['access_token']
+        st.session_state['user_info'] = github_oauth.get_user_info(token_response['access_token'])
+        # Clear query parameters
+        st.experimental_set_query_params()
+elif 'logout' in params and params['logout'][0] == 'true':
+    # Clear session data on logout
+    st.session_state['access_token'] = None
+    st.session_state['user_info'] = None
+    # Clear query parameters
+    st.experimental_set_query_params()
+    # Force refresh
+    st.experimental_rerun()
+
 # App title and description
 st.markdown('<h1 class="main-title">GitHub Repository Analyzer</h1>', unsafe_allow_html=True)
 st.markdown(
     '<p class="subtitle">Analyze GitHub repositories, get code quality insights and improvement suggestions</p>', 
     unsafe_allow_html=True
 )
+
+# Display user info if authenticated
+if st.session_state['user_info']:
+    st.sidebar.markdown(
+        f"""
+        <div class="user-info">
+            <img src="{st.session_state['user_info']['avatar_url']}" width="50" height="50" style="border-radius: 50%">
+            <span>Signed in as <strong>{st.session_state['user_info']['login']}</strong></span>
+            <a href="?logout=true">Sign Out</a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+else:
+    auth_url = github_oauth.get_authorization_url()
+    st.sidebar.markdown(
+        f"""
+        <div class="auth-box">
+            <p>Sign in with GitHub to analyze private repositories and get higher API rate limits.</p>
+            <a href="{auth_url}" class="github-button">
+                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" height="20">
+                Sign in with GitHub
+            </a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
 # Sidebar for inputs
 with st.sidebar:
@@ -80,7 +138,8 @@ if repo_url and analyze_button:
         else:
             # Initialize GitHub API client and repository analyzer
             with st.spinner("Fetching repository data..."):
-                github_repo = GitHubRepo(owner, repo_name)
+                # Use OAuth token if available
+                github_repo = GitHubRepo(owner, repo_name, st.session_state.get('access_token'))
                 repo_info = github_repo.get_repo_info()
                 
                 # Display repository info

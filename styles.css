@@ -96,6 +96,59 @@ code, pre {
     text-align: center;
 }
 
+/* GitHub Authentication Styles */
+.auth-box {
+    background-color: #F8F9FA;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.github-button {
+    display: inline-flex;
+    align-items: center;
+    background-color: #24292E;
+    color: white;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.github-button:hover {
+    background-color: #1A1E22;
+}
+
+.github-button img {
+    margin-right: 8px;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #F8F9FA;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.user-info img {
+    border-radius: 50%;
+}
+
+.user-info a {
+    margin-left: auto;
+    color: #DC2626;
+    text-decoration: none;
+}
+
+.user-info a:hover {
+    text-decoration: underline;
+}
+
 .score-box h3 {
     margin-top: 0;
     color: #1F2937;

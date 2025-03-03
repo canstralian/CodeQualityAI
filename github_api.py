@@ -12,13 +12,18 @@ class GitHubRepo:
     Class to interact with GitHub repositories using the GitHub REST API
     """
     
-    def __init__(self, owner, repo_name):
+    def __init__(self, owner, repo_name, access_token=None):
         """
         Initialize with repository owner and name
+        
+        Args:
+            owner (str): Repository owner
+            repo_name (str): Repository name
+            access_token (str, optional): OAuth access token for authenticated requests
         """
         self.owner = owner
         self.repo_name = repo_name
-        self.api_token = os.getenv("GITHUB_TOKEN", "")
+        self.api_token = access_token or os.getenv("GITHUB_TOKEN", "")
         self.base_url = f"https://api.github.com/repos/{owner}/{repo_name}"
         
         # Set up headers for API requests
@@ -27,11 +32,15 @@ class GitHubRepo:
         }
         
         if self.api_token:
-            self.headers["Authorization"] = f"token {self.api_token}"
+            # Use Bearer authentication if it's an OAuth token
+            if access_token:
+                self.headers["Authorization"] = f"Bearer {self.api_token}"
+            else:
+                self.headers["Authorization"] = f"token {self.api_token}"
             self.authenticated = True
         else:
             self.authenticated = False
-            st.warning("No GitHub token provided. API rate limits will be restricted. Set GITHUB_TOKEN environment variable for better performance.")
+            st.warning("No GitHub token provided. API rate limits will be restricted. Please sign in with GitHub for better performance.")
         
         # Verify repository exists
         try:
