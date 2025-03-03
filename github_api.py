@@ -55,9 +55,9 @@ class GitHubRepo:
 
             # Handle rate limiting
             if (
-                response.status_code == 403
-                and "X-RateLimit-Remaining" in response.headers
-                and int(response.headers["X-RateLimit-Remaining"]) == 0
+                response.status_code == 403 and
+                "X-RateLimit-Remaining" in response.headers and
+                int(response.headers["X-RateLimit-Remaining"]) == 0
             ):
                 reset_time = int(response.headers.get("X-RateLimit-Reset", 0))
                 current_time = int(time.time())

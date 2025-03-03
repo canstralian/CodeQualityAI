@@ -235,8 +235,8 @@ def display_results():
             st.metric("Files Analyzed", len(analysis_results))
         with col2:
             avg_quality = (
-                sum(result["result"]["score"] for result in analysis_results)
-                / len(analysis_results)
+                sum(result["result"]["score"] for result in analysis_results) /
+                len(analysis_results)
                 if analysis_results
                 else 0
             )
