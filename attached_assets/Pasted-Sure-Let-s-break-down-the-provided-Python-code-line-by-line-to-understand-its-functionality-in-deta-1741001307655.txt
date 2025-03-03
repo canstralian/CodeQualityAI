@@ -1,0 +1,990 @@
+Sure! Let's break down the provided Python code line by line to understand its functionality in detail.
+
+```python
+1: """
+2: GitHub Repository Analyzer - Main Application
+3: """
+```
+- Lines 1-3 are a multi-line string that serves as a comment or documentation for the code. It describes the purpose of the application, which is to analyze GitHub repositories.
+
+```python
+5: import streamlit as st
+```
+- This line imports the Streamlit library, which is used to create web applications in Python. It is aliased as `st` for easier reference throughout the code.
+
+```python
+6: import traceback
+```
+- This imports the `traceback` module, which provides utilities for extracting, formatting, and printing stack traces of Python programs. It is useful for debugging.
+
+```python
+7: import os
+```
+- This imports the `os` module, which provides a way to use operating system-dependent functionality like reading environment variables.
+
+```python
+8: from github_api import GitHubRepo
+```
+- This imports the `GitHubRepo` class from a module named `github_api`. This class likely contains methods for interacting with GitHub repositories.
+
+```python
+9: from code_analysis import CodeAnalyzer
+```
+- This imports the `CodeAnalyzer` class from a module named `code_analysis`. This class is presumably responsible for analyzing code quality.
+
+```python
+10: from visualization import (
+11:     visualize_commit_history,
+12:     visualize_code_quality,
+13:     visualize_issues_by_type,
+14: )
+```
+- Lines 10-14 import specific visualization functions from a module named `visualization`. These functions will be used to create visual representations of the analysis results.
+
+```python
+15: from utils import (
+16:     load_custom_css,
+17:     parse_repo_url,
+18:     handle_error,
+19:     create_repo_card,
+20:     get_file_extension,
+21:     create_html_card,
+22:     display_code_with_issues,
+23: )
+```
+- Lines 15-23 import various utility functions from a module named `utils`. These functions provide additional functionality needed for the application, such as loading CSS, parsing URLs, handling errors, and displaying code.
+
+```python
+24: from logger import logger
+```
+- This imports a `logger` object from a module named `logger`. This object is likely used for logging messages, which is helpful for debugging and tracking application behavior.
+
+```python
+26: # Page configuration
+27: st.set_page_config(
+28:     page_title="GitHub Repository Analyzer",
+29:     page_icon="📊",
+30:     layout="wide",
+31:     initial_sidebar_state="expanded",
+32: )
+```
+- Lines 26-32 configure the Streamlit application’s page settings. The title, icon, layout, and sidebar state are set to create a user-friendly interface.
+
+```python
+34: # Load custom CSS
+35: load_custom_css()
+```
+- Line 34 is a comment indicating that custom CSS will be loaded. Line 35 calls the `load_custom_css` function to apply custom styles to the application.
+
+```python
+37: # Initialize session state
+38: if "repo_analyzed" not in st.session_state:
+39:     st.session_state.repo_analyzed = False
+40: if "repo_data" not in st.session_state:
+41:     st.session_state.repo_data = {}
+42: if "analysis_results" not in st.session_state:
+43:     st.session_state.analysis_results = {}
+44: if "file_contents" not in st.session_state:
+45:     st.session_state.file_contents = {}
+46: if "selected_tab" not in st.session_state:
+47:     st.session_state.selected_tab = 0
+```
+- Lines 37-47 initialize the session state variables in Streamlit. These variables store the state of the application across user interactions:
+  - `repo_analyzed`: Tracks if a repository has been analyzed.
+  - `repo_data`: Stores information about the repository.
+  - `analysis_results`: Holds the results of the code analysis.
+  - `file_contents`: Contains the contents of the analyzed files.
+  - `selected_tab`: Keeps track of which tab is currently selected in the UI.
+
+```python
+50: def main():
+51:     """Main application entry point"""
+```
+- Line 50 defines the main function of the application, which serves as the entry point. Line 51 provides a docstring explaining its purpose.
+
+```python
+52:     logger.info("Starting GitHub Repository Analyzer application")
+```
+- This logs an informational message indicating that the application is starting.
+
+```python
+54:     # Page header
+55:     st.title("GitHub Repository Analyzer")
+```
+- Line 54 is a comment for clarity. Line 55 sets the title of the Streamlit application to "GitHub Repository Analyzer".
+
+```python
+56:     st.markdown(
+57:         """
+58:     Analyze any GitHub repository for code quality, visualize commit history, 
+59:     and get actionable improvement suggestions.
+60:     """
+61:     )
+```
+- Lines 56-61 use Markdown to display a description of the application, explaining its functionality to the user.
+
+```python
+63:     # Sidebar
+64:     with st.sidebar:
+```
+- Line 63 is a comment indicating the start of the sidebar section. Line 64 opens a context manager for the sidebar, allowing us to add elements to it.
+
+```python
+65:         st.header("Repository Settings")
+```
+- This sets a header in the sidebar titled "Repository Settings".
+
+```python
+66:         repo_url = st.text_input(
+67:             "GitHub Repository URL", value="https://github.com/streamlit/streamlit"
+68:         )
+```
+- Line 66 creates a text input field for the user to enter a GitHub repository URL. Line 67 sets a default value for this input.
+
+```python
+70:         # Analysis settings
+71:         st.subheader("Analysis Settings")
+```
+- Line 70 is a comment indicating the start of analysis settings. Line 71 adds a subheader titled "Analysis Settings".
+
+```python
+73:         file_types = st.multiselect(
+74:             "File Types to Analyze",
+75:             [
+76:                 "py",
+77:                 "js",
+78:                 "ts",
+79:                 "jsx",
+80:                 "tsx",
+81:                 "html",
+82:                 "css",
+83:                 "java",
+84:                 "cpp",
+85:                 "c",
+86:                 "go",
+87:                 "rb",
+88:             ],
+89:             default=["py", "js"],
+90:         )
+```
+- Lines 73-90 create a multi-select input for users to choose which file types they want to analyze. The available options include various programming languages, and the default selections are Python (`py`) and JavaScript (`js`).
+
+```python
+92:         analysis_depth = st.select_slider(
+93:             "Analysis Depth", options=["Basic", "Standard", "Deep"], value="Standard"
+94:         )
+```
+- Lines 92-94 create a slider for users to select the depth of analysis they want to perform, with options for "Basic", "Standard", and "Deep". The default value is set to "Standard".
+
+```python
+96:         max_files = st.slider("Maximum Files to Analyze", 1, 50, 10)
+```
+- This line creates a slider that allows users to specify the maximum number of files to analyze, with a range from 1 to 50 and a default value of 10.
+
+```python
+98:         # GitHub token (optional)
+99:         github_token = os.environ.get("GH_TOKEN")
+```
+- Line 98 is a comment indicating that a GitHub token is optional. Line 99 retrieves the GitHub token from the environment variables, which is used for authentication with the GitHub API.
+
+```python
+100:         if not github_token:
+101:             st.markdown("---")
+102:             st.markdown(
+103:                 "ℹ️ **Note:** For higher API rate limits, you can set a GitHub token in your environment variables."
+104:             )
+```
+- Lines 100-104 check if the GitHub token is not provided. If it is missing, a note is displayed to inform the user that they can set a token for higher API rate limits.
+
+```python
+106:         # Analyze button
+107:         analyze_btn = st.button("Analyze Repository", use_container_width=True)
+```
+- Line 106 is a comment indicating the start of the analyze button. Line 107 creates a button labeled "Analyze Repository" that users can click to start the analysis.
+
+```python
+109:     # Process repository analysis when button is clicked
+110:     if analyze_btn:
+```
+- Line 109 is a comment indicating that the following code will execute when the analyze button is clicked. Line 110 checks if the button was pressed.
+
+```python
+111:         with st.spinner("Analyzing repository... This may take a few moments."):
+```
+- This line creates a spinner (loading indicator) that informs the user that the analysis is in progress.
+
+```python
+112:             try:
+```
+- This line begins a `try` block to catch any exceptions that may occur during the analysis process.
+
+```python
+113:                 logger.info(f"Starting analysis of repository: {repo_url}")
+```
+- This logs an informational message indicating that the analysis of the specified repository is starting.
+
+```python
+115:                 # Parse repository URL
+116:                 owner, repo_name = parse_repo_url(repo_url)
+```
+- Line 115 is a comment indicating that the repository URL will be parsed. Line 116 calls the `parse_repo_url` function to extract the owner and repository name from the provided URL.
+
+```python
+117:                 if not owner or not repo_name:
+118:                     logger.error(f"Invalid repository URL: {repo_url}")
+119:                     handle_error(
+120:                         "Invalid GitHub repository URL. Please provide a valid URL."
+121:                     )
+```
+- Lines 117-121 check if the owner or repository name is missing after parsing. If either is missing, an error is logged, and the `handle_error` function is called to display an error message to the user.
+
+```python
+123:                 # Initialize GitHub repo
+124:                 logger.info(f"Initializing GitHub API client for {owner}/{repo_name}")
+125:                 repo = GitHubRepo(owner, repo_name, access_token=github_token)
+```
+- Lines 123-125 log a message indicating that the GitHub API client is being initialized. A new `GitHubRepo` object is created using the owner, repository name, and optional access token.
+
+```python
+127:                 # Get repository information
+128:                 logger.info(f"Fetching repository information for {owner}/{repo_name}")
+129:                 repo_info = repo.get_repo_info()
+```
+- Lines 127-129 log a message indicating that repository information is being fetched. The `get_repo_info` method of the `GitHubRepo` object is called to retrieve details about the repository.
+
+```python
+131:                 # Log comprehensive repository information
+132:                 logger.info(f"Successfully retrieved repo: {repo_info['full_name']}")
+133:                 logger.debug(
+134:                     f"Repository details: name={repo_info['name']}, owner={owner}, "
+135:                     + f"stars={repo_info['stars']}, forks={repo_info['forks']}, "
+136:                     + f"language={repo_info['language']}, license={repo_info['license']}"
+137:                 )
+```
+- Lines 131-137 log the successful retrieval of the repository information and provide detailed debug information about the repository, including its name, owner, stars, forks, language, and license.
+
+```python
+139:                 # Get commit history
+140:                 logger.info(f"Fetching commit history for {owner}/{repo_name}")
+141:                 commits = repo.get_commit_history(limit=50)
+```
+- Lines 139-141 log a message indicating that the commit history is being fetched. The `get_commit_history` method is called to retrieve the last 50 commits from the repository.
+
+```python
+144:                 # Get repository files for analysis
+145:                 logger.info(
+146:                     f"Fetching repository files for analysis (max: {max_files}, types: {file_types})"
+147:                 )
+148:                 files = repo.get_repository_files(
+149:                     max_files=max_files, file_extensions=file_types
+150:                 )
+```
+- Lines 144-150 log a message indicating that repository files are being fetched for analysis. The `get_repository_files` method is called with parameters for the maximum number of files and the types of files to analyze.
+
+```python
+153:                 # Initialize results
+154:                 analysis_results = []
+155:                 file_contents = {}
+```
+- Lines 153-155 initialize two empty data structures: `analysis_results` (a list to store the results of the analysis) and `file_contents` (a dictionary to store the contents of the analyzed files).
+
+```python
+157:                 # Initialize code analyzer
+158:                 logger.info("Initializing code analyzer")
+159:                 analyzer = CodeAnalyzer()
+```
+- Lines 157-159 log a message indicating that the code analyzer is being initialized. A new `CodeAnalyzer` object is created to perform code quality analysis.
+
+```python
+161:                 # Analyze each file
+162:                 for i, file_info in enumerate(files):
+```
+- Lines 161-162 start a loop to analyze each file retrieved from the repository. The `enumerate` function is used to get both the index (`i`) and the file information (`file_info`).
+
+```python
+163:                     file_path = file_info["path"]
+164:                     logger.info(f"Processing file {i+1}/{len(files)}: {file_path}")
+```
+- Line 163 extracts the file path from the file information. Line 164 logs a message indicating which file is currently being processed, showing the index and total number of files.
+
+```python
+166:                     try:
+```
+- This line begins a nested `try` block to catch exceptions that may occur while processing individual files.
+
+```python
+168:                         # Skip if file is in excluded directories
+169:                         excluded_dirs = [
+170:                             "node_modules",
+171:                             "venv",
+172:                             ".git",
+173:                             "__pycache__",
+174:                             "dist",
+175:                             "build",
+176:                         ]
+```
+- Lines 168-176 define a list of directories that should be excluded from analysis, such as `node_modules`, `venv`, and others that typically contain generated or unnecessary files.
+
+```python
+177:                         if any(
+178:                             excluded_dir in file_path for excluded_dir in excluded_dirs
+179:                         ):
+```
+- Lines 177-179 check if the current file path contains any of the excluded directories. The `any` function returns `True` if at least one condition is met.
+
+```python
+180:                             logger.debug(
+181:                                 f"Skipping excluded directory file: {file_path}"
+182:                             )
+183:                             continue
+```
+- Lines 180-183 log a debug message indicating that the file is being skipped due to being in an excluded directory, and the `continue` statement moves to the next iteration of the loop.
+
+```python
+185:                         # Get file content
+186:                         logger.debug(f"Fetching content for {file_path}")
+187:                         content = repo.get_file_content(file_path)
+```
+- Lines 185-187 log a debug message indicating that the content of the file is being fetched. The `get_file_content` method is called to retrieve the file's content.
+
+```python
+188:                         if not content:
+189:                             logger.warning(f"No content retrieved for {file_path}")
+190:                             continue
+```
+- Lines 188-190 check if the content is empty. If it is, a warning is logged, and the loop continues to the next file.
+
+```python
+192:                         # Store file content
+193:                         file_contents[file_path] = content
+```
+- Line 192 stores the retrieved content in the `file_contents` dictionary, using the file path as the key.
+
+```python
+194:                         # Get file extension
+195:                         extension = get_file_extension(file_path)
+196:                         logger.debug(f"File extension for {file_path}: {extension}")
+```
+- Lines 194-196 call the `get_file_extension` function to determine the file's extension and log the result.
+
+```python
+198:                         # Analyze code quality
+199:                         logger.debug(
+200:                             f"Analyzing code quality for {file_path} with {analysis_depth} depth"
+201:                         )
+202:                         result = analyzer.analyze_code(
+203:                             code=content,
+204:                             filename=file_path,
+205:                             file_extension=extension,
+206:                             depth=analysis_depth,
+207:                         )
+```
+- Lines 198-207 log a message indicating that code quality analysis is being performed. The `analyze_code` method of the `analyzer` object is called with the file's content, name, extension, and selected analysis depth. The result is stored in the `result` variable.
+
+```python
+209:                         # Store results
+210:                         analysis_results.append(
+211:                             {
+212:                                 "file_path": file_path,
+213:                                 "extension": extension,
+214:                                 "result": result,
+215:                             }
+216:                         )
+```
+- Lines 209-216 store the analysis results in the `analysis_results` list as a dictionary containing the file path, extension, and the result of the analysis.
+
+```python
+218:                         logger.debug(
+219:                             f"Analysis complete for {file_path}: score={result['score']}, issues={len(result['issues'])}"
+220:                         )
+```
+- Lines 218-220 log a debug message indicating that the analysis for the current file is complete, showing the quality score and the number of issues found.
+
+```python
+221:                     except Exception as file_error:
+222:                         logger.error(
+223:                             f"Error processing file {file_path}: {str(file_error)}"
+224:                         )
+225:                         logger.debug(
+226:                             f"File processing error details: {traceback.format_exc()}"
+227:                         )
+228:                         # Continue with other files even if one fails
+229:                         continue
+```
+- Lines 221-229 handle any exceptions that occur during file processing. If an error occurs, it is logged, and the loop continues to the next file, ensuring that one failure does not stop the entire analysis.
+
+```python
+231:                 logger.info(
+232:                     f"Analysis complete. Processed {len(analysis_results)} files"
+233:                 )
+```
+- Lines 231-233 log a message indicating that the analysis is complete and how many files were processed.
+
+```python
+235:                 # Store data in session state
+236:                 st.session_state.repo_data = {
+237:                     "info": repo_info,
+238:                     "commits": commits,
+239:                     "files": files,
+240:                 }
+241:                 st.session_state.analysis_results = analysis_results
+242:                 st.session_state.file_contents = file_contents
+243:                 st.session_state.repo_analyzed = True
+```
+- Lines 235-243 store the retrieved repository data, analysis results, and file contents in the session state. The `repo_analyzed` flag is set to `True` to indicate that analysis has been completed.
+
+```python
+245:                 # Reset selected tab
+246:                 st.session_state.selected_tab = 0
+```
+- Lines 245-246 reset the selected tab to 0, which likely corresponds to the first tab in the results display.
+
+```python
+248:                 logger.info("Successfully completed repository analysis")
+```
+- This logs a message indicating that the repository analysis was completed successfully.
+
+```python
+250:                 # Force a rerun to show results
+251:                 st.rerun()
+```
+- Lines 250-251 call `st.rerun()` to refresh the application and display the results of the analysis to the user.
+
+```python
+253:             except Exception as e:
+254:                 logger.error(f"Fatal error during repository analysis: {str(e)}")
+255:                 logger.debug(f"Analysis error details: {traceback.format_exc()}")
+256:                 logger.error(f"Application error: {str(e)}")
+257:                 handle_error(str(e))
+```
+- Lines 253-257 handle any fatal errors that occur during the analysis process. The error is logged, and the `handle_error` function is called to display an error message to the user.
+
+```python
+259:     # Display results if repository has been analyzed
+260:     if st.session_state.repo_analyzed:
+261:         display_results()
+```
+- Lines 259-261 check if the repository has been analyzed. If it has, the `display_results` function is called to show the analysis results.
+
+```python
+264: def display_results():
+265:     """Display analysis results"""
+```
+- Line 264 defines a new function named `display_results`, which is responsible for displaying the results of the analysis. Line 265 provides a docstring explaining its purpose.
+
+```python
+267:     # Get data from session state
+268:     repo_data = st.session_state.repo_data
+269:     analysis_results = st.session_state.analysis_results
+270:     file_contents = st.session_state.file_contents
+```
+- Lines 267-270 retrieve the repository data, analysis results, and file contents from the session state for use in displaying the results.
+
+```python
+272:     # Create tabs for different sections
+273:     tabs = st.tabs(
+274:         [
+275:             "Repository Overview",
+276:             "Code Quality Analysis",
+277:             "Commit History",
+278:             "Improvement Suggestions",
+279:         ]
+280:     )
+```
+- Lines 272-280 create tabs in the Streamlit application for different sections of the results: "Repository Overview", "Code Quality Analysis", "Commit History", and "Improvement Suggestions".
+
+```python
+282:     # Tab 1: Repository Overview
+283:     with tabs[0]:
+284:         st.header("Repository Overview")
+```
+- Lines 282-284 indicate the start of the first tab, "Repository Overview", and set a header for this section.
+
+```python
+286:         # Repository info card
+287:         repo_info = repo_data["info"]
+288:         st.markdown(create_repo_card(repo_info), unsafe_allow_html=True)
+```
+- Lines 286-288 retrieve the repository information from `repo_data` and create a card displaying this information using the `create_repo_card` function.
+
+```python
+290:         # Repository stats
+291:         col1, col2, col3 = st.columns(3)
+292:         with col1:
+293:             st.metric("Files Analyzed", len(analysis_results))
+```
+- Lines 290-293 create three columns to display repository statistics. The first column shows the number of files analyzed.
+
+```python
+294:         with col2:
+295:             avg_quality = (
+296:                 sum(result["result"]["score"] for result in analysis_results)
+297:                 / len(analysis_results)
+298:                 if analysis_results
+299:                 else 0
+300:             )
+301:             st.metric("Average Quality Score", f"{avg_quality:.1f}/10")
+```
+- Lines 294-301 calculate the average quality score from the analysis results and display it in the second column. If there are no results, the average is set to 0.
+
+```python
+302:         with col3:
+303:             st.metric("Commits", len(repo_data["commits"]))
+```
+- Lines 302-303 display the total number of commits in the third column.
+
+```python
+306:         # Recent commits
+307:         st.subheader("Recent Commits")
+```
+- Line 306 adds a subheader titled "Recent Commits" to the overview section.
+
+```python
+308:         commit_data = []
+309:         for commit in repo_data["commits"][:5]:  # Show only 5 most recent
+310:             commit_data.append(
+311:                 {
+312:                     "Author": commit["author"],
+313:                     "Date": commit["date"][:10],  # Show only date
+314:                     "Message": commit["message"],
+315:                 }
+316:             )
+```
+- Lines 308-316 create a list of the most recent commits (up to 5) and store their author, date, and message in a dictionary format.
+
+```python
+317:         st.dataframe(commit_data)
+```
+- This line displays the recent commits in a table format using Streamlit's `dataframe` function.
+
+```python
+320:         # File list
+321:         st.subheader("Analyzed Files")
+```
+- Line 320 adds a subheader titled "Analyzed Files" to the overview section.
+
+```python
+322:         file_list = []
+323:         for result in analysis_results:
+324:             file_path = result["file_path"]
+325:             quality_score = result["result"]["score"]
+```
+- Lines 322-325 initialize an empty list for the file list and loop through the analysis results to extract the file path and quality score for each analyzed file.
+
+```python
+327:             # Determine score class
+328:             score_class = "low"
+329:             if quality_score >= 7:
+330:                 score_class = "high"
+331:             elif quality_score >= 4:
+332:                 score_class = "medium"
+```
+- Lines 327-332 determine the classification of the quality score as "low", "medium", or "high" based on its value.
+
+```python
+334:             score_html = f'<span class="score-badge score-{score_class}">{quality_score}/10</span>'
+```
+- This line creates an HTML string to display the quality score with a corresponding badge class for styling.
+
+```python
+336:             file_list.append(
+337:                 {
+338:                     "File": file_path,
+339:                     "Score": score_html,
+340:                     "Issues": len(result["result"]["issues"]),
+341:                 }
+342:             )
+```
+- Lines 336-342 append a dictionary containing the file path, score HTML, and the number of issues found in the file to the `file_list`.
+
+```python
+344:         # Convert to DataFrame for display
+345:         import pandas as pd
+346: 
+347:         df = pd.DataFrame(file_list)
+```
+- Lines 344-347 import the Pandas library and convert the `file_list` into a Pandas DataFrame for easier display and manipulation.
+
+```python
+349:         # Use custom HTML for score column
+350:         st.write(df.to_html(escape=False, index=False), unsafe_allow_html=True)
+```
+- Line 349 converts the DataFrame to HTML format and displays it in the Streamlit app, allowing for custom HTML in the score column.
+
+```python
+352:     # Tab 2: Code Quality Analysis
+353:     with tabs[1]:
+354:         st.header("Code Quality Analysis")
+```
+- Lines 352-354 indicate the start of the second tab, "Code Quality Analysis", and set a header for this section.
+
+```python
+356:         # Quality score distribution visualization
+357:         st.subheader("Quality Score Distribution")
+358:         quality_fig = visualize_code_quality(analysis_results)
+359:         st.plotly_chart(quality_fig, use_container_width=True)
+```
+- Lines 356-359 add a subheader for the quality score distribution and call the `visualize_code_quality` function to create a visualization. The resulting figure is displayed using Plotly.
+
+```python
+361:         # Issues by type visualization
+362:         st.subheader("Issues by Type")
+```
+- Line 361 adds a subheader titled "Issues by Type" to the analysis section.
+
+```python
+364:         # Flatten all issues
+365:         all_issues = []
+366:         for result in analysis_results:
+367:             for issue in result["result"]["issues"]:
+368:                 all_issues.append(issue)
+```
+- Lines 364-368 initialize an empty list for all issues and loop through the analysis results to collect all issues found in the analyzed files.
+
+```python
+370:         if all_issues:
+371:             issues_fig = visualize_issues_by_type(all_issues)
+372:             st.plotly_chart(issues_fig, use_container_width=True)
+373:         else:
+374:             st.info("No issues detected in the analyzed files.")
+```
+- Lines 370-374 check if there are any issues. If there are, a visualization is created using the `visualize_issues_by_type` function and displayed. If no issues are found, an informational message is shown.
+
+```python
+376:         # File selection for detailed analysis
+377:         st.subheader("Detailed File Analysis")
+```
+- Line 376 adds a subheader titled "Detailed File Analysis" to the analysis section.
+
+```python
+378:         file_options = [result["file_path"] for result in analysis_results]
+```
+- This line creates a list of file paths from the analysis results for use in a selection box.
+
+```python
+380:         if file_options:
+381:             selected_file = st.selectbox("Select a file to analyze", file_options)
+```
+- Lines 380-381 check if there are any file options available. If so, a select box is created for the user to choose a file for detailed analysis.
+
+```python
+383:             # Get analysis result for selected file
+384:             file_result = next(
+385:                 (
+386:                     result
+387:                     for result in analysis_results
+388:                     if result["file_path"] == selected_file
+389:                 ),
+390:                 None,
+391:             )
+```
+- Lines 383-391 retrieve the analysis result for the selected file using a generator expression. If no result is found, `None` is returned.
+
+```python
+393:             if file_result:
+394:                 st.markdown(f"**Quality Score:** {file_result['result']['score']}/10")
+```
+- Lines 393-394 check if a result for the selected file exists. If it does, the quality score is displayed.
+
+```python
+396:                 # Display issues
+397:                 if file_result["result"]["issues"]:
+398:                     st.markdown("**Issues:**")
+```
+- Lines 396-398 check if there are any issues for the selected file. If there are, a header is displayed for the issues section.
+
+```python
+400:                     for issue in file_result["result"]["issues"]:
+401:                         severity = issue.get("severity", "error")
+```
+- Lines 400-401 loop through each issue and retrieve its severity level, defaulting to "error" if not specified.
+
+```python
+402:                         st.markdown(
+403:                             create_html_card(
+404:                                 title=f"Line {issue.get('line', 'N/A')}: {issue.get('type', 'Issue')}",
+405:                                 content=issue.get("message", "No description"),
+406:                                 card_type=severity,
+407:                             ),
+408:                             unsafe_allow_html=True,
+409:                         )
+```
+- Lines 402-409 create and display an HTML card for each issue, showing the line number, type, and message. The card's appearance is determined by the severity level.
+
+```python
+411:                     # Display code with issues highlighted
+412:                     st.markdown("**Code:**")
+413:                     code = file_contents.get(selected_file, "")
+414:                     st.markdown(
+415:                         display_code_with_issues(code, file_result["result"]["issues"]),
+416:                         unsafe_allow_html=True,
+417:                     )
+```
+- Lines 411-417 display the code for the selected file, highlighting any issues found. The `display_code_with_issues` function is called to format the code appropriately.
+
+```python
+419:                 else:
+420:                     st.success("No issues detected in this file.")
+```
+- Lines 419-420 handle the case where no issues are found in the selected file, displaying a success message.
+
+```python
+421:     # Tab 3: Commit History
+422:     with tabs[2]:
+423:         st.header("Commit History")
+```
+- Lines 421-423 indicate the start of the third tab, "Commit History", and set a header for this section.
+
+```python
+425:         # Commit history visualization
+426:         commits_fig = visualize_commit_history(repo_data["commits"])
+427:         st.plotly_chart(commits_fig, use_container_width=True)
+```
+- Lines 425-427 create a visualization of the commit history using the `visualize_commit_history` function and display it.
+
+```python
+429:         # Commit list
+430:         st.subheader("Commit Details")
+```
+- Line 429 adds a subheader titled "Commit Details" to the commit history section.
+
+```python
+432:         commit_details = []
+433:         for commit in repo_data["commits"]:
+434:             commit_details.append(
+435:                 {
+436:                     "Hash": commit["hash"][:7],
+437:                     "Author": commit["author"],
+438:                     "Date": commit["date"],
+439:                     "Message": commit["message"],
+440:                 }
+441:             )
+```
+- Lines 432-441 initialize an empty list for commit details and loop through the commits to extract relevant information (hash, author, date, and message) for each commit.
+
+```python
+443:         # Convert to DataFrame for display
+444:         import pandas as pd
+445: 
+446:         commit_df = pd.DataFrame(commit_details)
+```
+- Lines 443-446 import the Pandas library again (though it was already imported earlier) and convert the commit details into a DataFrame for display.
+
+```python
+447:         st.dataframe(commit_df)
+```
+- This line displays the commit details in a table format using Streamlit's `dataframe` function.
+
+```python
+449:     # Tab 4: Improvement Suggestions
+450:     with tabs[3]:
+451:         st.header("Improvement Suggestions")
+```
+- Lines 449-451 indicate the start of the fourth tab, "Improvement Suggestions", and set a header for this section.
+
+```python
+453:         # Get all files with issues
+454:         files_with_issues = [
+455:             result
+456:             for result in analysis_results
+457:             if result["result"]["issues"] and len(result["result"]["issues"]) > 0
+458:         ]
+```
+- Lines 453-458 create a list of files that have issues by filtering the `analysis_results`. Only files with one or more issues are included.
+
+```python
+460:         if files_with_issues:
+461:             # Sort files by number of issues (most to least)
+462:             files_with_issues.sort(
+463:                 key=lambda x: len(x["result"]["issues"]), reverse=True
+464:             )
+```
+- Lines 460-464 check if there are any files with issues. If so, they are sorted in descending order based on the number of issues.
+
+```python
+466:             for result in files_with_issues:
+467:                 file_path = result["file_path"]
+468:                 issues = result["result"]["issues"]
+469:                 suggestions = result["result"].get("suggestions", [])
+```
+- Lines 466-469 loop through each file with issues, extracting the file path, issues, and any improvement suggestions.
+
+```python
+471:                 st.subheader(file_path)
+```
+- This line adds a subheader for the current file being displayed.
+
+```python
+473:                 # Display score
+474:                 quality_score = result["result"]["score"]
+475:                 score_class = "low"
+476:                 if quality_score >= 7:
+477:                     score_class = "high"
+478:                 elif quality_score >= 4:
+479:                     score_class = "medium"
+```
+- Lines 473-479 display the quality score for the current file and classify it as "low", "medium", or "high".
+
+```python
+481:                 st.markdown(
+482:                     f"**Quality Score:** <span class='score-badge score-{score_class}'>{quality_score}/10</span>",
+483:                     unsafe_allow_html=True,
+484:                 )
+```
+- Lines 481-484 create an HTML string to display the quality score with appropriate styling and render it in the Streamlit app.
+
+```python
+486:                 # Display suggestions
+487:                 if suggestions:
+488:                     for suggestion in suggestions:
+489:                         st.markdown(
+490:                             create_html_card(
+491:                                 title=suggestion.get("title", "Suggestion"),
+492:                                 content=suggestion.get("description", "No description"),
+493:                                 card_type="info",
+494:                             ),
+495:                             unsafe_allow_html=True,
+496:                         )
+```
+- Lines 486-496 check if there are any suggestions for improvement. If there are, they are displayed using HTML cards created by the `create_html_card` function.
+
+```python
+498:                         # Show example if provided
+499:                         if "example" in suggestion:
+500:                             with st.expander("Show Example"):
+501:                                 st.code(
+502:                                     suggestion["example"], language=result["extension"]
+503:                                 )
+```
+- Lines 498-503 check if an example is provided with the suggestion. If so, it is displayed in an expandable section using the `st.expander` function.
+
+```python
+505:                 else:
+506:                     # Generate generic suggestions if none provided
+507:                     if issues:
+508:                         st.markdown("**General Suggestions:**")
+```
+- Lines 505-508 handle the case where no specific suggestions are provided. If there are issues, a header for general suggestions is displayed.
+
+```python
+510:                         # Group issues by type
+511:                         issue_types = {}
+512:                         for issue in issues:
+513:                             issue_type = issue.get("type", "Unknown")
+514:                             if issue_type not in issue_types:
+515:                                 issue_types[issue_type] = []
+516:                             issue_types[issue_type].append(issue)
+```
+- Lines 510-516 group the issues by their type, creating a dictionary where each key is an issue type and the value is a list of issues of that type.
+
+```python
+518:                         # Generate suggestions for each issue type
+519:                         for issue_type, type_issues in issue_types.items():
+```
+- Line 518 indicates that suggestions will be generated for each type of issue. Line 519 starts a loop through the grouped issue types.
+
+```python
+520:                             if issue_type == "Long function":
+521:                                 st.markdown(
+522:                                     create_html_card(
+523:                                         title="Refactor Long Functions",
+524:                                         content="Consider breaking down long functions into smaller, more focused functions that each do one thing well.",
+525:                                         card_type="info",
+526:                                     ),
+527:                                     unsafe_allow_html=True,
+528:                                 )
+```
+- Lines 520-528 provide a specific suggestion for "Long function" issues, recommending that long functions be refactored into smaller ones.
+
+```python
+530:                             elif issue_type == "Complex code":
+531:                                 st.markdown(
+532:                                     create_html_card(
+533:                                         title="Reduce Complexity",
+534:                                         content="Simplify complex code by breaking it down, removing nested conditions, and using helper functions.",
+535:                                         card_type="info",
+536:                                     ),
+537:                                     unsafe_allow_html=True,
+538:                                 )
+```
+- Lines 530-538 provide a suggestion for "Complex code" issues, recommending simplification of complex code.
+
+```python
+540:                             elif issue_type == "Inconsistent naming":
+541:                                 st.markdown(
+542:                                     create_html_card(
+543:                                         title="Standardize Naming Conventions",
+544:                                         content="Use consistent naming patterns throughout your codebase for better readability.",
+545:                                         card_type="info",
+546:                                     ),
+547:                                     unsafe_allow_html=True,
+548:                                 )
+```
+- Lines 540-548 provide a suggestion for "Inconsistent naming" issues, recommending the use of consistent naming conventions.
+
+```python
+549:                             elif issue_type == "Missing documentation":
+550:                                 st.markdown(
+551:                                     create_html_card(
+552:                                         title="Add Documentation",
+553:                                         content="Add docstrings, comments, and type hints to improve code clarity and maintainability.",
+554:                                         card_type="info",
+555:                                     ),
+556:                                     unsafe_allow_html=True,
+557:                                 )
+```
+- Lines 549-557 provide a suggestion for "Missing documentation" issues, recommending the addition of documentation to improve clarity.
+
+```python
+559:                             elif issue_type == "Potential security issue":
+560:                                 st.markdown(
+561:                                     create_html_card(
+562:                                         title="Improve Security",
+563:                                         content="Address security vulnerabilities by validating inputs, using secure libraries, and following security best practices.",
+564:                                         card_type="error",
+565:                                     ),
+566:                                     unsafe_allow_html=True,
+567:                                 )
+```
+- Lines 559-567 provide a suggestion for "Potential security issue" issues, recommending improvements to security practices.
+
+```python
+569:                             else:
+570:                                 st.markdown(
+571:                                     create_html_card(
+572:                                         title=f"Fix {issue_type} Issues",
+573:                                         content=f"Address the {len(type_issues)} identified issues of this type to improve code quality.",
+574:                                         card_type="info",
+575:                                     ),
+576:                                     unsafe_allow_html=True,
+577:                                 )
+```
+- Lines 569-577 handle any other issue types not specifically addressed, providing a generic suggestion to fix the identified issues.
+
+```python
+578:         else:
+579:             st.success("No issues detected in the analyzed files. Great job!")
+```
+- Lines 578-579 handle the case where no issues were detected in the analyzed files, displaying a success message.
+
+```python
+581:     # Footer
+582:     st.markdown("---")
+583:     st.markdown(
+584:         """
+585:         <footer>
+586:             <p>GitHub Repository Analyzer | MIT License | Created with ❤️ by Replit</p>
+587:         </footer>
+588:         """,
+589:         unsafe_allow_html=True,
+590:     )
+```
+- Lines 581-590 create a footer for the application, providing licensing information and credit to the creators. The footer is rendered using HTML.
+
+```python
+593: if __name__ == "__main__":
+594:     main()
+```
+- Lines 593-594 check if the script is being run directly (not imported as a module). If it is, the `main` function is called to start the application.
+
+This concludes the detailed line-by-line explanation of the provided Python code for the GitHub Repository Analyzer application. The application allows users to analyze GitHub repositories for code quality, visualize commit history, and provide actionable improvement suggestions based on the analysis results.
