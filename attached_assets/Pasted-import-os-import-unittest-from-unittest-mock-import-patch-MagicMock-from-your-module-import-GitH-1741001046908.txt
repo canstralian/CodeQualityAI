@@ -1,0 +1,81 @@
+import os
+import unittest
+from unittest.mock import patch, MagicMock
+from your_module import GitHubOAuth  # Replace 'your_module' with the actual module name
+
+
+class TestGitHubOAuthNegative(unittest.TestCase):
+
+    @patch('os.getenv')
+    def test_initialization_without_client_secret(self, mock_getenv):
+        """Test initialization when the client secret is not set."""
+        mock_getenv.side_effect = lambda key, default=None: None if key == "GH_CLIENT_SECRET" else default
+        oauth = GitHubOAuth()
+        self.assertIsNone(oauth.client_secret)
+
+    @patch('requests.post')
+    def test_exchange_code_for_token_with_none_code(self, mock_post):
+        """Test exchanging code for token with None code."""
+        oauth = GitHubOAuth()
+        token = oauth.exchange_code_for_token(None)
+        self.assertIsNone(token)
+
+    @patch('requests.post')
+    def test_exchange_code_for_token_with_invalid_response(self, mock_post):
+        """Test exchanging code for token with an invalid response."""
+        oauth = GitHubOAuth()
+        mock_response = MagicMock()
+        mock_response.status_code = 400  # Simulate a bad request
+        mock_post.return_value = mock_response
+        token = oauth.exchange_code_for_token("some_code")
+        self.assertIsNone(token)
+
+    @patch('requests.get')
+    def test_get_user_info_with_none_access_token(self, mock_get):
+        """Test getting user info with None access token."""
+        oauth = GitHubOAuth()
+        user_info = oauth.get_user_info(None)
+        self.assertIsNone(user_info)
+
+    @patch('requests.get')
+    def test_get_user_info_with_invalid_response(self, mock_get):
+        """Test getting user info with an invalid response."""
+        oauth = GitHubOAuth()
+        mock_response = MagicMock()
+        mock_response.status_code = 404  # Simulate not found
+        mock_get.return_value = mock_response
+        user_info = oauth.get_user_info("some_access_token")
+        self.assertIsNone(user_info)
+
+    @patch('requests.post')
+    def test_exchange_code_for_token_with_invalid_code(self, mock_post):
+        """Test exchanging code for token with an invalid code."""
+        oauth = GitHubOAuth()
+        mock_response = MagicMock()
+        mock_response.status_code = 401  # Unauthorized
+        mock_post.return_value = mock_response
+        token = oauth.exchange_code_for_token("invalid_code")
+        self.assertIsNone(token)
+
+    @patch('requests.get')
+    def test_get_user_info_with_invalid_access_token(self, mock_get):
+        """Test getting user info with an invalid access token."""
+        oauth = GitHubOAuth()
+        mock_response = MagicMock()
+        mock_response.status_code = 403  # Forbidden
+        mock_get.return_value = mock_response
+        user_info = oauth.get_user_info("invalid_access_token")
+        self.assertIsNone(user_info)
+
+    @patch('os.getenv')
+    def test_initialization_with_missing_environment_variables(self, mock_getenv):
+        """Test initialization with missing environment variables."""
+        mock_getenv.side_effect = lambda key, default=None: None
+        oauth = GitHubOAuth()
+        self.assertIsNone(oauth.client_secret)
+        self.assertEqual(oauth.redirect_uri, "")
+        self.assertEqual(oauth.client_id, "Iv23li4HONY9xwkd821t")  # Default value check
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -1,0 +1,196 @@
+import unittest
+from unittest.mock import patch, MagicMock
+import streamlit as st
+from your_module import main, display_results  # Replace 'your_module' with the actual module name
+
+class TestGitHubRepositoryAnalyzer(unittest.TestCase):
+
+    @patch('your_module.load_custom_css')
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.CodeAnalyzer')
+    @patch('your_module.visualize_commit_history')
+    @patch('your_module.visualize_code_quality')
+    @patch('your_module.visualize_issues_by_type')
+    @patch('your_module.handle_error')
+    @patch('your_module.logger')
+    def test_main_function_success(self, mock_logger, mock_handle_error, mock_visualize_issues_by_type, 
+                                    mock_visualize_code_quality, mock_visualize_commit_history, 
+                                    mock_CodeAnalyzer, mock_GitHubRepo, mock_load_custom_css):
+        """Test the main function runs successfully with valid inputs."""
+        # Setup mock objects
+        mock_load_custom_css.return_value = None
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_repo_info.return_value = {
+            'full_name': 'owner/repo',
+            'name': 'repo',
+            'stars': 10,
+            'forks': 5,
+            'language': 'Python',
+            'license': 'MIT'
+        }
+        mock_repo_instance.get_commit_history.return_value = [{'author': 'author', 'date': '2021-01-01', 'message': 'Initial commit'}]
+        mock_repo_instance.get_repository_files.return_value = [{'path': 'file.py'}]
+        mock_repo_instance.get_file_content.return_value = 'print("Hello World")'
+        mock_GitHubRepo.return_value = mock_repo_instance
+
+        mock_analyzer_instance = MagicMock()
+        mock_analyzer_instance.analyze_code.return_value = {
+            'score': 8,
+            'issues': []
+        }
+        mock_CodeAnalyzer.return_value = mock_analyzer_instance
+
+        # Simulate Streamlit inputs
+        st.session_state.repo_analyzed = False
+        st.session_state.repo_data = {}
+        st.session_state.analysis_results = {}
+        st.session_state.file_contents = {}
+        st.session_state.selected_tab = 0
+
+        # Simulate button click
+        with patch('streamlit.button', return_value=True):
+            main()
+
+        # Assertions
+        mock_logger.info.assert_called()
+        self.assertTrue(st.session_state.repo_analyzed)
+        self.assertIn('info', st.session_state.repo_data)
+        self.assertEqual(len(st.session_state.analysis_results), 1)
+
+    @patch('your_module.st')
+    def test_display_results_with_data(self, mock_st):
+        """Test display_results function with valid data."""
+        # Setup mock data
+        mock_st.session_state.repo_data = {
+            'info': {'full_name': 'owner/repo'},
+            'commits': [{'author': 'author', 'date': '2021-01-01', 'message': 'Initial commit'}],
+            'files': [{'path': 'file.py'}]
+        }
+        mock_st.session_state.analysis_results = [
+            {
+                'file_path': 'file.py',
+                'extension': 'py',
+                'result': {'score': 8, 'issues': []}
+            }
+        ]
+        mock_st.session_state.file_contents = {'file.py': 'print("Hello World")'}
+
+        display_results()
+
+        # Assertions
+        mock_st.header.assert_called_with("Repository Overview")
+        mock_st.metric.assert_called()
+
+    @patch('your_module.st')
+    def test_display_results_no_issues(self, mock_st):
+        """Test display_results function when no issues are detected."""
+        # Setup mock data
+        mock_st.session_state.repo_data = {
+            'info': {'full_name': 'owner/repo'},
+            'commits': [{'author': 'author', 'date': '2021-01-01', 'message': 'Initial commit'}],
+            'files': [{'path': 'file.py'}]
+        }
+        mock_st.session_state.analysis_results = [
+            {
+                'file_path': 'file.py',
+                'extension': 'py',
+                'result': {'score': 8, 'issues': []}
+            }
+        ]
+        mock_st.session_state.file_contents = {'file.py': 'print("Hello World")'}
+
+        display_results()
+
+        # Assertions
+        mock_st.success.assert_called_with("No issues detected in the analyzed files. Great job!")
+
+if __name__ == "__main__":
+    unittest.main()
+
+import unittest
+from unittest.mock import patch, MagicMock
+import streamlit as st
+from your_module import main, handle_error  # Replace 'your_module' with the actual module name
+
+class TestGitHubRepoAnalyzerNegative(unittest.TestCase):
+
+    @patch('your_module.parse_repo_url')
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.CodeAnalyzer')
+    @patch('your_module.logger')
+    def test_invalid_repo_url(self, mock_logger, mock_CodeAnalyzer, mock_GitHubRepo, mock_parse_repo_url):
+        """Test that an invalid GitHub repository URL raises an error."""
+        mock_parse_repo_url.return_value = (None, None)  # Simulate invalid URL parsing
+        with patch('your_module.handle_error') as mock_handle_error:
+            with patch('streamlit.spinner'):
+                main()  # Call the main function which triggers the analysis
+            mock_handle_error.assert_called_once_with("Invalid GitHub repository URL. Please provide a valid URL.")
+            mock_logger.error.assert_called_once_with("Invalid repository URL: None")
+
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.logger')
+    def test_github_repo_initialization_failure(self, mock_logger, mock_GitHubRepo):
+        """Test that failure to initialize GitHubRepo raises an error."""
+        mock_GitHubRepo.side_effect = Exception("GitHub API error")
+        with patch('your_module.handle_error') as mock_handle_error:
+            with patch('streamlit.spinner'):
+                main()  # Call the main function which triggers the analysis
+            mock_handle_error.assert_called_once_with("GitHub API error")
+            mock_logger.error.assert_called_once_with("Fatal error during repository analysis: GitHub API error")
+
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.CodeAnalyzer')
+    @patch('your_module.logger')
+    def test_file_content_retrieval_failure(self, mock_logger, mock_CodeAnalyzer, mock_GitHubRepo):
+        """Test that failure to retrieve file content raises an error."""
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_file_content.side_effect = Exception("File content error")
+        mock_GitHubRepo.return_value = mock_repo_instance
+        mock_CodeAnalyzer.return_value.analyze_code.return_value = {"score": 5, "issues": []}
+
+        with patch('your_module.handle_error') as mock_handle_error:
+            with patch('streamlit.spinner'):
+                main()  # Call the main function which triggers the analysis
+            mock_handle_error.assert_called_once_with("File content error")
+            mock_logger.error.assert_called_once_with("Error processing file None: File content error")
+
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.CodeAnalyzer')
+    @patch('your_module.logger')
+    def test_analysis_with_no_files(self, mock_logger, mock_CodeAnalyzer, mock_GitHubRepo):
+        """Test that analysis proceeds correctly when no files are retrieved."""
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_repository_files.return_value = []  # Simulate no files
+        mock_GitHubRepo.return_value = mock_repo_instance
+        mock_CodeAnalyzer.return_value.analyze_code.return_value = {"score": 5, "issues": []}
+
+        with patch('streamlit.spinner'):
+            main()  # Call the main function which triggers the analysis
+
+        # Check that the analysis results are empty
+        self.assertEqual(st.session_state.analysis_results, [])
+        mock_logger.info.assert_called_with("Analysis complete. Processed 0 files")
+
+    @patch('your_module.GitHubRepo')
+    @patch('your_module.CodeAnalyzer')
+    @patch('your_module.logger')
+    def test_analysis_with_excluded_files(self, mock_logger, mock_CodeAnalyzer, mock_GitHubRepo):
+        """Test that files in excluded directories are skipped."""
+        mock_repo_instance = MagicMock()
+        mock_repo_instance.get_repository_files.return_value = [
+            {"path": "node_modules/example.js"},
+            {"path": "src/example.py"},
+        ]
+        mock_repo_instance.get_file_content.return_value = "print('Hello World')"
+        mock_GitHubRepo.return_value = mock_repo_instance
+        mock_CodeAnalyzer.return_value.analyze_code.return_value = {"score": 5, "issues": []}
+
+        with patch('streamlit.spinner'):
+            main()  # Call the main function which triggers the analysis
+
+        # Check that only the non-excluded file was analyzed
+        self.assertEqual(st.session_state.analysis_results, [])
+        mock_logger.debug.assert_called_with("Skipping excluded directory file: node_modules/example.js")
+
+if __name__ == '__main__':
+    unittest.main()
