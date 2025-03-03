@@ -278,6 +278,6 @@ if repo_url and analyze_button:
 # Footer
 st.markdown("---")
 st.markdown(
-    "<div class='footer'><p>GitHub Repository Analyzer | Built with Streamlit and CodeT5 | &copy; 2023</p></div>",
+    "<div class='footer'><p>GitHub Repository Analyzer | Built with Streamlit and CodeT5 | &copy; 2025</p></div>",
     unsafe_allow_html=True
 )
