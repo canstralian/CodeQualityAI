@@ -1,227 +1,277 @@
-/* Global Styles */
+/* Custom CSS for GitHub Repository Analyzer */
+
+/* ---- Main Theme Colors ---- */
+:root {
+  --primary-color: #2563EB;     /* Blue for primary actions and highlights */
+  --secondary-color: #404040;   /* Dark gray for secondary elements */
+  --background-color: #FFFFFF;  /* White background */
+  --text-color: #1F2937;        /* Dark text for readability */
+  --success-color: #10B981;     /* Green for success messages */
+  --error-color: #EF4444;       /* Red for errors */
+  --warning-color: #F59E0B;     /* Amber for warnings */
+  --info-color: #3B82F6;        /* Blue for info messages */
+  --light-gray: #F3F4F6;        /* Light gray for backgrounds */
+  --border-color: #E5E7EB;      /* Border color */
+}
+
+/* ---- Typography ---- */
+/* Main font stack: Inter, system UI fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Apply to all elements for consistent sizing */
 * {
-    font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
 }
 
-code, pre {
-    font-family: 'JetBrains Mono', monospace;
+/* Apply main font and color to body */
+html, body, [class*="css"] {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-color);
 }
 
-/* Typography */
-.main-title {
-    color: #2563EB;
-    font-size: 2.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+/* Main Container */
+.main .block-container {
+  padding: 1rem;
+  max-width: 1200px;
 }
 
-.subtitle {
-    color: #6B7280;
-    font-size: 1.1rem;
-    margin-top: 0;
-    margin-bottom: 2rem;
+/* ---- Streamlit Elements Styling ---- */
+
+/* Headers */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  color: var(--text-color);
 }
 
-.sidebar-title {
-    color: #1F2937;
-    font-size: 1.5rem;
-    font-weight: 600;
-    margin-bottom: 1rem;
+h1 {
+  font-size: 1.875rem;
+  margin-bottom: 1rem;
 }
 
-.sidebar-section {
-    color: #4B5563;
-    font-size: 1.2rem;
-    font-weight: 500;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+h2 {
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
 }
 
-/* Cards and Boxes */
+h3 {
+  font-size: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Buttons */
+.stButton > button {
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.stButton > button:first-child {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.stButton > button:first-child:hover {
+  background-color: #1D4ED8; /* Darker blue on hover */
+  border-color: #1D4ED8;
+}
+
+.stButton > button:not(:first-child) {
+  background-color: white;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.stButton > button:not(:first-child):hover {
+  background-color: var(--light-gray);
+}
+
+/* Text Input */
+.stTextInput > div > div > input {
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+}
+
+.stTextInput > div > div > input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
+}
+
+/* Select Box */
+.stSelectbox > div > div > select {
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  padding: 0.5rem;
+}
+
+/* Slider */
+.stSlider > div > div > div > div {
+  background-color: var(--primary-color);
+}
+
+/* Expander */
+.streamlit-expanderHeader {
+  font-weight: 500;
+  color: var(--text-color);
+  background-color: var(--light-gray);
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+}
+
+.streamlit-expanderContent {
+  border: 1px solid var(--border-color);
+  border-top: none;
+  border-radius: 0 0 0.375rem 0.375rem;
+  padding: 1rem;
+}
+
+/* Dataframe */
+.dataframe {
+  border-radius: 0.375rem;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+}
+
+.dataframe th {
+  background-color: var(--light-gray);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  text-align: left;
+}
+
+.dataframe td {
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Code blocks and syntax highlighting */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9rem;
+  padding: 0.2rem 0.4rem;
+  background-color: var(--light-gray);
+  border-radius: 0.25rem;
+}
+
+pre {
+  background-color: var(--light-gray);
+  border-radius: 0.375rem;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* ---- Custom Components ---- */
+
+/* Repository Card */
 .repo-card {
-    background-color: #F3F4F6;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
-    border-left: 4px solid #2563EB;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .repo-card h3 {
-    margin-top: 0;
-    color: #1F2937;
+  margin-top: 0;
+  color: var(--primary-color);
 }
 
-.repo-card p {
-    color: #4B5563;
-    margin-bottom: 0;
+/* Code Quality Score */
+.score-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-align: center;
 }
 
-.stat-card {
-    background-color: #F8FAFC;
-    border-radius: 8px;
-    padding: 16px;
-    text-align: center;
-    margin-bottom: 16px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.score-high {
+  background-color: var(--success-color);
+  color: white;
 }
 
-.stat-card p {
-    color: #4B5563;
-    margin-bottom: 4px;
-    font-size: 1rem;
+.score-medium {
+  background-color: var(--warning-color);
+  color: white;
 }
 
-.stat-card h4 {
-    color: #2563EB;
-    margin-top: 0;
-    font-size: 1.8rem;
+.score-low {
+  background-color: var(--error-color);
+  color: white;
 }
 
-.info-box {
-    background-color: #F9FAFB;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 16px;
+/* Issue Card */
+.issue-card {
+  background-color: white;
+  border-left: 4px solid var(--primary-color);
+  border-radius: 0.25rem;
+  padding: 1rem;
+  margin-bottom: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.info-box p {
-    margin: 8px 0;
+.issue-card.error {
+  border-left-color: var(--error-color);
 }
 
-.score-box {
-    background-color: #F0F9FF;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
-    text-align: center;
+.issue-card.warning {
+  border-left-color: var(--warning-color);
 }
 
-/* GitHub Authentication Styles */
-.auth-box {
-    background-color: #F8F9FA;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 20px;
+.issue-card.info {
+  border-left-color: var(--info-color);
 }
 
-.github-button {
-    display: inline-flex;
-    align-items: center;
-    background-color: #24292E;
-    color: white;
-    text-decoration: none;
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-weight: 500;
-    margin-top: 10px;
-    transition: background-color 0.2s;
-}
-
-.github-button:hover {
-    background-color: #1A1E22;
-}
-
-.github-button img {
-    margin-right: 8px;
-}
-
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background-color: #F8F9FA;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.user-info img {
-    border-radius: 50%;
-}
-
-.user-info a {
-    margin-left: auto;
-    color: #DC2626;
-    text-decoration: none;
-}
-
-.user-info a:hover {
-    text-decoration: underline;
-}
-
-.score-box h3 {
-    margin-top: 0;
-    color: #1F2937;
-}
-
-.score-box h2 {
-    font-size: 3rem;
-    margin-bottom: 0;
-}
-
-.issue-box {
-    background-color: #FEF2F2;
-    border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
-    border-left: 3px solid #EF4444;
-}
-
-.error-box {
-    background-color: #FEF2F2;
-    border-radius: 8px;
-    padding: 16px;
-    margin: 16px 0;
-    border: 1px solid #FCA5A5;
-}
-
-.error-box h3 {
-    color: #EF4444;
-    margin-top: 0;
-}
-
-/* Buttons and Interactive Elements */
-.stButton > button {
-    background-color: #2563EB;
-    color: white;
-    border-radius: 6px;
-    border: none;
-    padding: 8px 16px;
-    font-weight: 500;
-}
-
-.stButton > button:hover {
-    background-color: #1D4ED8;
-}
-
-/* Code Blocks */
-pre {
-    background-color: #F9FAFB;
-    border-radius: 6px;
-    padding: 16px;
-    border: 1px solid #E5E7EB;
-    overflow: auto;
-}
-
-code {
-    font-size: 0.9rem;
-}
-
-/* Footer */
-.footer {
-    text-align: center;
-    padding: 16px 0;
-    color: #6B7280;
-    font-size: 0.9rem;
-}
-
-/* Responsive Design */
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    .main-title {
-        font-size: 2rem;
-    }
-    
-    .score-box h2 {
-        font-size: 2.5rem;
-    }
+  .main .block-container {
+    padding: 0.5rem;
+  }
+  
+  h1 {
+    font-size: 1.5rem;
+  }
+  
+  h2 {
+    font-size: 1.25rem;
+  }
+  
+  h3 {
+    font-size: 1.125rem;
+  }
+}
+
+/* Tabs styling */
+.stTabs [data-baseweb="tab-list"] {
+  gap: 0.25rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+  height: 3rem;
+  white-space: pre-wrap;
+  background-color: white;
+  border-radius: 0.375rem 0.375rem 0 0;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.stTabs [aria-selected="true"] {
+  background-color: var(--primary-color) !important;
+  color: white !important;
+}
+
+/* Footer area */
+footer {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  color: var(--secondary-color);
+  text-align: center;
 }
